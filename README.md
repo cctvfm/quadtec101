@@ -5,6 +5,8 @@ A Quad Panning Oscillator designed for the Neuztec 4 Festival
 
 More info here: [cctv.fm](https://www.cctv.fm/product-page/quadtec-101)
 
+Sign up here: [Neuzlab](http://www.neuztec.ca/neuzlab/)
+
 >QUADTEC-101 A MUSICAL INSTRUMENT FROM THE FUTURE.
 
  
