@@ -1,0 +1,4 @@
+1) The output is quite low, the fix is to change the values of R3, R11, R13, and R19. A value of 2K would give a gain of 3x which would give you an
+output of 12V peak-peak. Go higher if you'd like, but too high and you might have some clipping.
+2) The MCP4802 can be replaced with the MCP4822 to give 12-bit resolution instead of 8-bit. The firmware is coded for the 12-bit version,
+so it's drop-in compatible.
