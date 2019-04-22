@@ -1,0 +1,1 @@
+Firmware is writting in C in MPLAB X IDE v 3.65. Some optimization is used, but it's using the free XC16 compiler.
