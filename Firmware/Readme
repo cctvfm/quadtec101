@@ -1,1 +1,3 @@
 Firmware is writting in C in MPLAB X IDE v 3.65. Some optimization is used, but it's using the free XC16 compiler.
+
+.hex file can be uploaded through IPE and is ready to go. Make sure to select 'DSPIC30F3013' as the device type.
