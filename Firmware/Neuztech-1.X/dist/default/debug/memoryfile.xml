@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project>
+  <executable name="dist/default/debug/Neuztech-1.X.debug.elf">
+    <memory name="data">
+      <units>bytes</units>
+      <length>2048</length>
+      <used>1872</used>
+      <free>176</free>
+    </memory>
+    <memory name="program">
+      <units>bytes</units>
+      <length>24192</length>
+      <used>23379</used>
+      <free>813</free>
+    </memory>
+  </executable>
+</project>

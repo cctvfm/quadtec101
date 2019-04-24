@@ -1,0 +1,1868 @@
+Disassembly Listing for Neuztech-1
+Generated From:
+/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/dist/default/production/Neuztech-1.X.production.elf
+Mar 28, 2019 12:55:24 PM
+
+---  /Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c  -----------------------
+1:                 /*
+2:                  * File:   main.c
+3:                  * Author: filip
+4:                  *
+5:                  * Created on February 5, 2019, 12:38 PM
+6:                  */
+7:                 
+8:                 #define FOSC (120000000ULL)
+9:                 #define FCY FOSC/2
+10:                #include <libpic30.h>
+11:                #include "main.h"
+12:                #include "waveforms.h"
+13:                #include <math.h>
+14:                #include <dsp.h>
+15:                
+16:                
+17:                #define AIN TRISBbits.TRISB0
+18:                
+19:                #define NEUZOUT LATDbits.LATD9
+20:                //multiplexer defines
+21:                
+22:                
+23:                #define SWIRL_CHANNEL       0b000
+24:                #define RELATION_CHANNEL    0b001
+25:                #define OSC1_CHANNEL        0b010
+26:                #define OSC2_CHANNEL        0b011
+27:                #define WAV1_CHANNEL        0b100
+28:                #define WAV2_CHANNEL        0b101
+29:                #define OSC1CV_CHANNEL      0b110  
+30:                #define OSC2CV_CHANNEL      0b111
+31:                #define ADCSAMPLES 10   //number of samples to be taken and averaged
+32:                                        //higher number means less jitter, but longer response rate
+33:                
+34:                #define _XTAL_FREQ 120000000
+35:                
+36:                #define SAMPLERATE 30000
+37:                #define TIMER1_RELOAD 750   //40KHz sample rate tested //750 for 40k, 1000 for 30k
+38:                #define HZPHASOR    108420     //108420 for 40K tested 144560 for 30k untested
+39:                #define LFOPHASORSCALE  100 //must be much slower than the hz phasor
+40:                                            //multiply by 4095/2 to get max swirl speed, about 2Hz? maybe too fast
+41:                                            //untested
+42:                
+43:                //#define F0 16.35 //lowest possible note, all others are calculated from this one - Low C
+44:                #define F0 8 //make it a nice integer, should still be able to tune?
+45:                #define A 1.059463094   //power factor for semitones to frequency conversion
+46:                #define SINE 1
+47:                #define TRI 2
+48:                #define SQUARE 3
+49:                
+50:                unsigned long int phaseaccumulator=0;
+51:                unsigned long int phaseaccumulator2 = 0;
+52:                unsigned long int phaseaccumulator3 = 0;
+53:                unsigned long int phaseaccumulator4 = 0;
+54:                
+55:                unsigned long int lfoaccumulator=0;
+56:                
+57:                unsigned int swirler[4];
+58:                
+59:                unsigned long int phasor1;
+60:                unsigned long int phasor2;
+61:                unsigned long int phasor3;
+62:                unsigned long int phasor4;
+63:                
+64:                unsigned long int lfophasor = LFOPHASORSCALE*100;
+65:                unsigned char lfodirection = 0;
+66:                #define NONE 0
+67:                #define LEFT 1
+68:                #define RIGHT 2
+69:                unsigned int waveshape1;
+70:                unsigned int waveshape2;
+71:                int waveshape1samples[ADCSAMPLES];
+72:                
+73:                unsigned int relation = 0;
+74:                
+75:                unsigned int SwirlH,SwirlL;
+76:                unsigned int AnalogInputs[10]={0,0,0,0,0,0,0,0,0,0};
+77:                unsigned int LastAnalogInputs[10]={0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF};
+78:                unsigned char currentMUXChannel = 0;
+79:                unsigned long int counter=0;
+80:                unsigned int samplecounter = 0;
+81:                unsigned long int setpoint = 1000;
+82:                
+83:                
+84:                #define currentSWIRL AnalogInputs[0]
+85:                #define currentRELATION AnalogInputs[1]
+86:                #define currentOSC1 AnalogInputs[2]
+87:                #define currentOSC2 AnalogInputs[3]
+88:                #define currentWAV1 AnalogInputs[4]
+89:                #define currentWAV2 AnalogInputs[5]
+90:                #define currentVOCT1 AnalogInputs[6]
+91:                #define currentVOCT2 AnalogInputs[7]
+92:                #define currentPANCV AnalogInputs[8]
+93:                #define currentNEUZ  AnalogInputs[9]
+94:                
+95:                #define lastSWIRL LastAnalogInputs[0]
+96:                #define lastRELATION LastAnalogInputs[1]
+97:                #define lastOSC1 LastAnalogInputs[2]
+98:                #define lastOSC2 LastAnalogInputs[3]
+99:                #define lastWAV1 LastAnalogInputs[4]
+100:               #define lastWAV2 LastAnalogInputs[5]
+101:               #define lastVOCT1 LastAnalogInputs[6]
+102:               #define lastVOCT2 LastAnalogInputs[7]
+103:               #define lastPANCV LastAnalogInputs[8]
+104:               #define lastNEUZ  LastAnalogInputs[9]
+105:               
+106:               
+107:               //Interrupts 40,000 times per second.
+108:               void __attribute__((__interrupt__,__auto_psv__)) __attribute__((optimize("-O0")))  _T1Interrupt(void)
+109:               {
+0038C8  F80036     PUSH RCOUNT
+0038CA  BE9F80     MOV.D W0, [W15++]
+0038CC  BE9F82     MOV.D W2, [W15++]
+0038CE  BE9F84     MOV.D W4, [W15++]
+0038D0  BE9F86     MOV.D W6, [W15++]
+0038D2  BE9F88     MOV.D W8, [W15++]
+0038D4  F80034     PUSH PSVPAG
+0038D6  200000     MOV #0x0, W0
+0038D8  8801A0     MOV W0, PSVPAG
+0038DA  FA000C     LNK #0xC
+110:               
+111:                  
+112:                   unsigned int DACA,DACB,DACC,DACD;
+113:                   signed int currentsample;
+114:                   unsigned int rando;
+115:                   
+116:                   
+117:               
+118:                   
+119:                   if (IFS0bits.T1IF == 1)   //synth engine routine
+0038DC  800420     MOV IFS0, W0
+0038DE  600068     AND W0, #0x8, W0
+0038E0  E00000     CP0 W0
+0038E2  3200A4     BRA Z, .L91
+120:                   {
+121:                       IEC0bits.T1IE = 0;
+0038E4  A9608C     BCLR IEC0, #3
+122:                       
+123:                        
+124:                       samplecounter++;
+0038E6  8072A0     MOV samplecounter, W0
+0038E8  E80000     INC W0, W0
+0038EA  8872A0     MOV W0, samplecounter
+125:                        
+126:                       phaseaccumulator = phaseaccumulator + phasor1;
+0038EC  807112     MOV phaseaccumulator, W2
+0038EE  807123     MOV 0xE24, W3
+0038F0  8072F0     MOV phasor1, W0
+0038F2  807301     MOV 0xE60, W1
+0038F4  400002     ADD W0, W2, W0
+0038F6  488083     ADDC W1, W3, W1
+0038F8  887110     MOV W0, phaseaccumulator
+0038FA  887121     MOV W1, 0xE24
+127:                       phaseaccumulator2= phaseaccumulator2 + phasor2;
+0038FC  807132     MOV phaseaccumulator2, W2
+0038FE  807143     MOV 0xE28, W3
+003900  807310     MOV phasor2, W0
+003902  807321     MOV 0xE64, W1
+003904  400002     ADD W0, W2, W0
+003906  488083     ADDC W1, W3, W1
+003908  887130     MOV W0, phaseaccumulator2
+00390A  887141     MOV W1, 0xE28
+128:                       phaseaccumulator3= phaseaccumulator3 + phasor3;
+00390C  807152     MOV phaseaccumulator3, W2
+00390E  807163     MOV 0xE2C, W3
+003910  807330     MOV phasor3, W0
+003912  807341     MOV 0xE68, W1
+003914  400002     ADD W0, W2, W0
+003916  488083     ADDC W1, W3, W1
+003918  887150     MOV W0, phaseaccumulator3
+00391A  887161     MOV W1, 0xE2C
+129:                       phaseaccumulator4= phaseaccumulator4 + phasor4;
+00391C  807172     MOV phaseaccumulator4, W2
+00391E  807183     MOV 0xE30, W3
+003920  807350     MOV phasor4, W0
+003922  807361     MOV 0xE6C, W1
+003924  400002     ADD W0, W2, W0
+003926  488083     ADDC W1, W3, W1
+003928  887170     MOV W0, phaseaccumulator4
+00392A  887181     MOV W1, 0xE30
+130:                       if(lfodirection == LEFT)
+00392C  BFCE36     MOV.B lfodirection, WREG
+00392E  504FE1     SUB.B W0, #0x1, [W15]
+003930  3A0009     BRA NZ, .L93
+131:                           lfoaccumulator = lfoaccumulator - lfophasor;    //for the swirler
+003932  807192     MOV lfoaccumulator, W2
+003934  8071A3     MOV 0xE34, W3
+003936  807030     MOV 0xE06, W0
+003938  807041     MOV 0xE08, W1
+00393A  510000     SUB W2, W0, W0
+00393C  598081     SUBB W3, W1, W1
+00393E  887190     MOV W0, lfoaccumulator
+003940  8871A1     MOV W1, 0xE34
+003942  37000B     BRA .L94
+132:                       else if(lfodirection == RIGHT)
+003944  BFCE36     MOV.B lfodirection, WREG
+003946  504FE2     SUB.B W0, #0x2, [W15]
+003948  3A0008     BRA NZ, .L94
+133:                           lfoaccumulator = lfoaccumulator + lfophasor;    //for the swirler
+00394A  807192     MOV lfoaccumulator, W2
+00394C  8071A3     MOV 0xE34, W3
+00394E  807030     MOV 0xE06, W0
+003950  807041     MOV 0xE08, W1
+003952  400002     ADD W0, W2, W0
+003954  488083     ADDC W1, W3, W1
+003956  887190     MOV W0, lfoaccumulator
+003958  8871A1     MOV W1, 0xE34
+134:                       
+135:                       //currentsample = getSample(phaseaccumulator>>22,waveshape1);
+136:                       //currentsample = currentsample + getSample(phaseaccumulator3>>22,waveshape2);
+137:                       
+138:                       //currentsample = currentsample /2;
+139:                       
+140:                       currentsample = Scale(getSample(phaseaccumulator>>22,waveshape1),1023-relation) 
+00395A  8071C0     MOV relation, W0
+00395C  203FF1     MOV #0x3FF, W1
+00395E  508400     SUB W1, W0, W8
+003960  807372     MOV waveshape1, W2
+003962  807110     MOV phaseaccumulator, W0
+003964  807121     MOV 0xE24, W1
+003966  DE0846     LSR W1, #6, W0
+003968  780000     MOV W0, W0
+00396A  780082     MOV W2, W1
+00396C  07FD9D     RCALL getSample
+00396E  780088     MOV W8, W1
+003970  07FF9C     RCALL Scale
+003972  780400     MOV W0, W8
+003988  440000     ADD W8, W0, W0
+00398A  980740     MOV W0, [W14+8]
+141:                                   // +getSample(phaseaccumulator2>>22,waveshape1)
+142:                                      +Scale(getSample(phaseaccumulator3>>22,waveshape2),relation)
+003974  8071C9     MOV relation, W9
+003976  807382     MOV waveshape2, W2
+003978  807150     MOV phaseaccumulator3, W0
+00397A  807161     MOV 0xE2C, W1
+00397C  DE0846     LSR W1, #6, W0
+00397E  780000     MOV W0, W0
+003980  780082     MOV W2, W1
+003982  07FD92     RCALL getSample
+003984  780089     MOV W9, W1
+003986  07FF91     RCALL Scale
+143:                                   // +getSample(phaseaccumulator3>>22,waveshape2)
+144:                                       ;
+145:                       if(lfodirection != NONE)
+00398C  BFCE36     MOV.B lfodirection, WREG
+00398E  E00400     CP0.B W0
+003990  320019     BRA Z, .L95
+146:                       {
+147:                           DACA = Scale(currentsample,swirler[0]);
+003992  20E560     MOV #0xE56, W0
+003994  780010     MOV [W0], W0
+003996  780080     MOV W0, W1
+003998  90004E     MOV [W14+8], W0
+00399A  07FF87     RCALL Scale
+00399C  780F00     MOV W0, [W14]
+148:                           DACB = Scale(currentsample,swirler[1]);
+00399E  20E560     MOV #0xE56, W0
+0039A0  900010     MOV [W0+2], W0
+0039A2  780080     MOV W0, W1
+0039A4  90004E     MOV [W14+8], W0
+0039A6  07FF81     RCALL Scale
+0039A8  980710     MOV W0, [W14+2]
+149:                           DACC = Scale(currentsample,swirler[2]);
+0039AA  20E560     MOV #0xE56, W0
+0039AC  900020     MOV [W0+4], W0
+0039AE  780080     MOV W0, W1
+0039B0  90004E     MOV [W14+8], W0
+0039B2  07FF7B     RCALL Scale
+0039B4  980720     MOV W0, [W14+4]
+150:                           DACD = Scale(currentsample,swirler[3]);
+0039B6  20E560     MOV #0xE56, W0
+0039B8  900030     MOV [W0+6], W0
+0039BA  780080     MOV W0, W1
+0039BC  90004E     MOV [W14+8], W0
+0039BE  07FF75     RCALL Scale
+0039C0  980730     MOV W0, [W14+6]
+0039C2  370008     BRA .L96
+151:                       }
+152:                       else
+153:                       {
+154:                           DACA = currentsample;
+0039C4  9000CE     MOV [W14+8], W1
+0039C6  780F01     MOV W1, [W14]
+155:                           DACB = currentsample;
+0039C8  90014E     MOV [W14+8], W2
+0039CA  980712     MOV W2, [W14+2]
+156:                           DACC = currentsample;
+0039CC  9000CE     MOV [W14+8], W1
+0039CE  980721     MOV W1, [W14+4]
+157:                           DACD = currentsample;
+0039D0  90014E     MOV [W14+8], W2
+0039D2  980732     MOV W2, [W14+6]
+158:                       }
+159:                       //DACC = getSample(phaseaccumulator3>>22,waveshape2);
+160:                       //DACD = DACC;
+161:                       //DACB = getSample(phaseaccumulator>>22,waveshape1);
+162:                       //DACA = DACA + DACB;
+163:                       //DACA = DACA>>1;
+164:                       //DACB=DACA;
+165:                       //to do, when adding these two waveforms, weird stuff happens.
+166:                       //edit, i think it's because of phasor discrepancy, if the interval is 0, phasors need to be identical.
+167:               
+168:                       WriteDac(1,DACA,DACB);
+0039D4  90009E     MOV [W14+2], W1
+0039D6  78001E     MOV [W14], W0
+0039D8  780101     MOV W1, W2
+0039DA  780080     MOV W0, W1
+0039DC  B3C010     MOV.B #0x1, W0
+0039DE  07FCDD     RCALL WriteDac
+169:                       WriteDac(2,DACC,DACD);
+0039E0  9000BE     MOV [W14+6], W1
+0039E2  90002E     MOV [W14+4], W0
+0039E4  780101     MOV W1, W2
+0039E6  780080     MOV W0, W1
+0039E8  B3C020     MOV.B #0x2, W0
+0039EA  07FCD7     RCALL WriteDac
+170:                       
+171:                       PR1 = TIMER1_RELOAD;
+0039EC  202EE0     MOV #0x2EE, W0
+0039EE  880810     MOV W0, PR1
+172:                                  //figure these out for the right sample rate
+173:                                  //should this be at the top of this routine for timing accuracy?
+174:               
+175:                       
+176:                       if(counter > setpoint)
+0039F0  807282     MOV counter, W2
+0039F2  807293     MOV 0xE52, W3
+0039F4  8070F0     MOV 0xE1E, W0
+0039F6  807101     MOV 0xE20, W1
+0039F8  510F80     SUB W2, W0, [W15]
+0039FA  598F81     SUBB W3, W1, [W15]
+0039FC  36000F     BRA LEU, .L97
+177:                       {
+178:                           rando= rand() % 2;
+0039FE  07E7BE     RCALL _rand
+003A00  200021     MOV #0x2, W1
+003A02  780101     MOV W1, W2
+003A04  090011     REPEAT #0x11
+003A06  D80002     DIV.SW W0, W2
+003A08  FD0080     EXCH W0, W1
+003A0A  980750     MOV W0, [W14+10]
+179:                           if(rando==1)
+003A0C  90005E     MOV [W14+10], W0
+003A0E  500FE1     SUB W0, #0x1, [W15]
+003A10  3A0002     BRA NZ, .L98
+180:                               NEUZOUT = 1;
+003A12  A822D7     BSET 0x2D7, #1
+003A14  370001     BRA .L99
+181:                           else
+182:                               NEUZOUT = 0;
+003A16  A922D7     BCLR 0x2D7, #1
+183:               
+184:                           counter = 0;
+003A18  EF2E50     CLR counter
+003A1A  EF2E52     CLR 0xE52
+185:                       }
+186:               
+187:                       
+188:                       counter++;
+003A1C  807280     MOV counter, W0
+003A1E  807291     MOV 0xE52, W1
+003A20  400061     ADD W0, #0x1, W0
+003A22  4880E0     ADDC W1, #0x0, W1
+003A24  887280     MOV W0, counter
+003A26  887291     MOV W1, 0xE52
+189:                       
+190:                       IFS0bits.T1IF = 0;     
+003A28  A96084     BCLR IFS0, #3
+191:                       IEC0bits.T1IE = 1;  
+003A2A  A8608C     BSET IEC0, #3
+192:                       
+193:                   }
+194:                   
+195:               
+196:                           
+197:                           
+198:               }
+003A2C  FA8000     ULNK
+003A2E  F90034     POP PSVPAG
+003A30  BE044F     MOV.D [--W15], W8
+003A32  BE034F     MOV.D [--W15], W6
+003A34  BE024F     MOV.D [--W15], W4
+003A36  BE014F     MOV.D [--W15], W2
+003A38  BE004F     MOV.D [--W15], W0
+003A3A  F90036     POP RCOUNT
+003A3C  064000     RETFIE
+199:               
+200:               
+201:               int __attribute__((optimize("-O0"))) main(void) {
+003644  FA0016     LNK #0x16
+003646  781F88     MOV W8, [W15++]
+202:                   
+203:                   chipconfig();
+003648  07FE54     RCALL chipconfig
+204:                   unsigned int fun;
+205:                   unsigned char x;
+206:               
+207:                   unsigned int y;
+208:                   unsigned int totalADC;
+209:                   unsigned long testphasor;
+210:               
+211:                   unsigned int loopcounter = 0;
+00364A  EB0000     CLR W0
+00364C  980720     MOV W0, [W14+4]
+212:                   
+213:                   float voltage,frequency;
+214:                   
+215:                   //grab all the inputs real quick first.
+216:                   for(x=0;x<=9;x++)
+00364E  EB4000     CLR.B W0
+003650  784F00     MOV.B W0, [W14]
+003652  37000C     BRA .L65
+00366A  E84F1E     INC.B [W14], [W14]
+00366C  78401E     MOV.B [W14], W0
+00366E  504FE9     SUB.B W0, #0x9, [W15]
+003670  36FFF1     BRA LEU, .L66
+217:                   {
+218:                       AnalogInputs[loopcounter]=ReadAIN(loopcounter);
+003654  90002E     MOV [W14+4], W0
+003656  784000     MOV.B W0, W0
+003658  07FE39     RCALL ReadAIN
+00365A  780100     MOV W0, W2
+00365C  90002E     MOV [W14+4], W0
+00365E  EB0080     CLR W1
+003660  400000     ADD W0, W0, W0
+003662  488081     ADDC W1, W1, W1
+003664  20E3A3     MOV #0xE3A, W3
+003666  400003     ADD W0, W3, W0
+003668  780802     MOV W2, [W0]
+219:                   }
+220:                   
+221:                   T1CONbits.TON = 1;  //start sampling timer
+003672  A8E105     BSET 0x105, #7
+222:                   
+223:               
+224:                   fun = 0;    //no more fun
+003674  EB0000     CLR W0
+003676  980730     MOV W0, [W14+6]
+225:                   
+226:                   while(1)
+227:                   {
+228:                          
+229:               
+230:                       AnalogInputs[loopcounter]=ReadAIN(loopcounter);
+003678  90002E     MOV [W14+4], W0
+00367A  784000     MOV.B W0, W0
+00367C  07FE27     RCALL ReadAIN
+00367E  780100     MOV W0, W2
+003680  90002E     MOV [W14+4], W0
+003682  EB0080     CLR W1
+003684  400000     ADD W0, W0, W0
+003686  488081     ADDC W1, W1, W1
+003688  20E3A3     MOV #0xE3A, W3
+00368A  400003     ADD W0, W3, W0
+00368C  780802     MOV W2, [W0]
+231:                       
+232:                       loopcounter++;
+00368E  90002E     MOV [W14+4], W0
+003690  E80000     INC W0, W0
+003692  980720     MOV W0, [W14+4]
+233:                       
+234:                       if(loopcounter>9)
+003694  90002E     MOV [W14+4], W0
+003696  500FE9     SUB W0, #0x9, [W15]
+003698  360002     BRA LEU, .L67
+235:                           loopcounter = 0;
+00369A  EB0000     CLR W0
+00369C  980720     MOV W0, [W14+4]
+236:                       
+237:                       
+238:                       
+239:                       //compute 4 scale factors for swirler
+240:                       y=lfoaccumulator>>22;
+00369E  807190     MOV lfoaccumulator, W0
+0036A0  8071A1     MOV 0xE34, W1
+0036A2  DE0846     LSR W1, #6, W0
+0036A4  980710     MOV W0, [W14+2]
+241:                       for(x=0;x<4;x++)
+0036A6  EB4000     CLR.B W0
+0036A8  784F00     MOV.B W0, [W14]
+0036AA  370031     BRA .L68
+00370C  E84F1E     INC.B [W14], [W14]
+00370E  78401E     MOV.B [W14], W0
+003710  504FE3     SUB.B W0, #0x3, [W15]
+003712  36FFCC     BRA LEU, .L72
+242:                       {
+243:                           if(triwave(y)>0)
+0036AC  90001E     MOV [W14+2], W0
+0036AE  07FEE5     RCALL triwave
+0036B0  E00000     CP0 W0
+0036B2  34001A     BRA LE, .L69
+244:                           {
+245:                               swirler[x]=triwave(y);
+0036B4  FB841E     ZE [W14], W8
+0036B6  90001E     MOV [W14+2], W0
+0036B8  07FEE0     RCALL triwave
+0036BA  780100     MOV W0, W2
+0036BC  20E563     MOV #0xE56, W3
+0036BE  B94061     MUL.SU W8, #1, W0
+0036C0  400000     ADD W0, W0, W0
+0036C2  488081     ADDC W1, W1, W1
+0036C4  418000     ADD W3, W0, W0
+0036C6  780802     MOV W2, [W0]
+246:                               swirler[x]=swirler[x]>>1;
+0036C8  FB821E     ZE [W14], W4
+0036CA  FB801E     ZE [W14], W0
+0036CC  20E562     MOV #0xE56, W2
+0036CE  DE80CF     ASR W0, #15, W1
+0036D0  400000     ADD W0, W0, W0
+0036D2  488081     ADDC W1, W1, W1
+0036D4  410000     ADD W2, W0, W0
+0036D6  780010     MOV [W0], W0
+0036D8  D10100     LSR W0, W2
+0036DA  20E563     MOV #0xE56, W3
+0036DC  B92061     MUL.SU W4, #1, W0
+0036DE  400000     ADD W0, W0, W0
+0036E0  488081     ADDC W1, W1, W1
+0036E2  418000     ADD W3, W0, W0
+0036E4  780802     MOV W2, [W0]
+0036E6  370008     BRA .L70
+247:                           }
+248:                           else
+249:                               swirler[x] = 0;
+0036E8  FB801E     ZE [W14], W0
+0036EA  20E562     MOV #0xE56, W2
+0036EC  DE80CF     ASR W0, #15, W1
+0036EE  400000     ADD W0, W0, W0
+0036F0  488081     ADDC W1, W1, W1
+0036F2  410000     ADD W2, W0, W0
+0036F4  EB0080     CLR W1
+0036F6  780801     MOV W1, [W0]
+250:                           
+251:                           
+252:                           y=y+256;
+0036F8  90001E     MOV [W14+2], W0
+0036FA  B01000     ADD #0x100, W0
+0036FC  980710     MOV W0, [W14+2]
+253:                           if(y>1023)
+0036FE  90009E     MOV [W14+2], W1
+003700  203FF0     MOV #0x3FF, W0
+003702  508F80     SUB W1, W0, [W15]
+003704  360003     BRA LEU, .L71
+254:                               y=y-1023;
+003706  90001E     MOV [W14+2], W0
+003708  B13FF0     SUB #0x3FF, W0
+00370A  980710     MOV W0, [W14+2]
+255:                       }
+256:               
+257:                       if(currentSWIRL != lastSWIRL || currentPANCV != lastPANCV)
+003714  8071D1     MOV AnalogInputs, W1
+003716  807050     MOV 0xE0A, W0
+003718  508F80     SUB W1, W0, [W15]
+00371A  3A0004     BRA NZ, .L73
+00371C  807251     MOV 0xE4A, W1
+00371E  8070D0     MOV 0xE1A, W0
+003720  508F80     SUB W1, W0, [W15]
+003722  32003D     BRA Z, .L74
+258:                       {
+259:                           if(currentSWIRL>2200)
+003724  8071D1     MOV AnalogInputs, W1
+003726  208980     MOV #0x898, W0
+003728  508F80     SUB W1, W0, [W15]
+00372A  360017     BRA LEU, .L75
+260:                           {
+261:                               
+262:                              
+263:                               lfophasor = (currentSWIRL-2200);
+00372C  8071D1     MOV AnalogInputs, W1
+00372E  2F7680     MOV #0xF768, W0
+003730  408000     ADD W1, W0, W0
+003732  EB0080     CLR W1
+003734  887030     MOV W0, 0xE06
+003736  887041     MOV W1, 0xE08
+264:                               lfophasor = lfophasor * LFOPHASORSCALE;
+003738  807030     MOV 0xE06, W0
+00373A  807041     MOV 0xE08, W1
+00373C  200642     MOV #0x64, W2
+00373E  B98902     MUL.SS W1, W2, W2
+003740  780102     MOV W2, W2
+003742  B90260     MUL.SU W0, #0, W4
+003744  780184     MOV W4, W3
+003746  410103     ADD W2, W3, W2
+003748  200643     MOV #0x64, W3
+00374A  B80003     MUL.UU W0, W3, W0
+00374C  410101     ADD W2, W1, W2
+00374E  780082     MOV W2, W1
+003750  887030     MOV W0, 0xE06
+003752  887041     MOV W1, 0xE08
+265:                               lfodirection = LEFT;
+003754  B3C010     MOV.B #0x1, W0
+003756  B7EE36     MOV.B WREG, lfodirection
+003758  37001E     BRA .L76
+266:                           }
+267:                           else if(currentSWIRL<1900)
+00375A  8071D1     MOV AnalogInputs, W1
+00375C  2076B0     MOV #0x76B, W0
+00375E  508F80     SUB W1, W0, [W15]
+003760  3E0017     BRA GTU, .L77
+268:                           {
+269:                               lfophasor = (1900-currentSWIRL);
+003762  8071D0     MOV AnalogInputs, W0
+003764  2076C1     MOV #0x76C, W1
+003766  508000     SUB W1, W0, W0
+003768  EB0080     CLR W1
+00376A  887030     MOV W0, 0xE06
+00376C  887041     MOV W1, 0xE08
+270:                               lfophasor = lfophasor * LFOPHASORSCALE;
+00376E  807030     MOV 0xE06, W0
+003770  807041     MOV 0xE08, W1
+003772  200642     MOV #0x64, W2
+003774  B98902     MUL.SS W1, W2, W2
+003776  780102     MOV W2, W2
+003778  B90260     MUL.SU W0, #0, W4
+00377A  780184     MOV W4, W3
+00377C  410103     ADD W2, W3, W2
+00377E  200643     MOV #0x64, W3
+003780  B80003     MUL.UU W0, W3, W0
+003782  410101     ADD W2, W1, W2
+003784  780082     MOV W2, W1
+003786  887030     MOV W0, 0xE06
+003788  887041     MOV W1, 0xE08
+271:                               lfodirection = RIGHT;
+00378A  B3C020     MOV.B #0x2, W0
+00378C  B7EE36     MOV.B WREG, lfodirection
+00378E  370003     BRA .L76
+272:                           }
+273:                           else
+274:                           {
+275:                               lfophasor = 0;
+003790  EF2E06     CLR 0xE06
+003792  EF2E08     CLR 0xE08
+276:                               lfodirection = NONE;
+003794  EF6E36     CLR.B lfodirection
+277:                           }
+278:                
+279:                           lastSWIRL = currentSWIRL;
+003796  8071D0     MOV AnalogInputs, W0
+003798  887050     MOV W0, 0xE0A
+280:                           lastPANCV = currentPANCV;
+00379A  807250     MOV 0xE4A, W0
+00379C  8870D0     MOV W0, 0xE1A
+281:                       }
+282:                        
+283:                       if((currentVOCT1 != lastVOCT1) || (currentOSC1 != lastOSC1))
+00379E  807231     MOV 0xE46, W1
+0037A0  8070B0     MOV 0xE16, W0
+0037A2  508F80     SUB W1, W0, [W15]
+0037A4  3A0004     BRA NZ, .L78
+0037A6  8071F1     MOV 0xE3E, W1
+0037A8  807070     MOV 0xE0E, W0
+0037AA  508F80     SUB W1, W0, [W15]
+0037AC  320033     BRA Z, .L79
+284:                       {
+285:                           
+286:                           totalADC = currentOSC1 + currentVOCT1;
+0037AE  8071F1     MOV 0xE3E, W1
+0037B0  807230     MOV 0xE46, W0
+0037B2  408000     ADD W1, W0, W0
+0037B4  980740     MOV W0, [W14+8]
+287:                           
+288:                           phasor1 = IntToFreq(totalADC);
+0037B6  90004E     MOV [W14+8], W0
+0037B8  07FD2E     RCALL IntToFreq
+0037BA  8872F0     MOV W0, phasor1
+0037BC  887301     MOV W1, 0xE60
+289:                           
+290:                           
+291:                           
+292:                           voltage = currentOSC1+currentVOCT1;
+0037BE  8071F1     MOV 0xE3E, W1
+0037C0  807230     MOV 0xE46, W0
+0037C2  408000     ADD W1, W0, W0
+0037C4  EB0080     CLR W1
+0037C6  07E56F     RCALL ___floatunsisf
+0037C8  980750     MOV W0, [W14+10]
+0037CA  980761     MOV W1, [W14+12]
+293:                           voltage = voltage/4095;
+0037CC  2F0002     MOV #0xF000, W2
+0037CE  2457F3     MOV #0x457F, W3
+0037D0  90005E     MOV [W14+10], W0
+0037D2  9000EE     MOV [W14+12], W1
+0037D4  07E4FC     RCALL ___divsf3
+0037D6  980750     MOV W0, [W14+10]
+0037D8  980761     MOV W1, [W14+12]
+294:                           //voltage = voltage*5.0;
+295:                           //voltage = voltage/0.0833333;
+296:                           voltage = voltage* 60;  //the above is condensed to this
+0037DA  200002     MOV #0x0, W2
+0037DC  242703     MOV #0x4270, W3
+0037DE  90005E     MOV [W14+10], W0
+0037E0  9000EE     MOV [W14+12], W1
+0037E2  07E5B6     RCALL ___mulsf3
+0037E4  980750     MOV W0, [W14+10]
+0037E6  980761     MOV W1, [W14+12]
+297:                           frequency = F0*(powf(A,voltage));
+0037E8  90015E     MOV [W14+10], W2
+0037EA  9001EE     MOV [W14+12], W3
+0037EC  29C7D0     MOV #0x9C7D, W0
+0037EE  23F871     MOV #0x3F87, W1
+0037F0  07E5E3     RCALL _powf
+0037F2  200002     MOV #0x0, W2
+0037F4  241003     MOV #0x4100, W3
+0037F6  07E5AC     RCALL ___mulsf3
+0037F8  980770     MOV W0, [W14+14]
+0037FA  980F01     MOV W1, [W14+16]
+298:                           testphasor = HZPHASOR * frequency;
+0037FC  2C2002     MOV #0xC200, W2
+0037FE  247D33     MOV #0x47D3, W3
+003800  90007E     MOV [W14+14], W0
+003802  90088E     MOV [W14+16], W1
+003804  07E5A5     RCALL ___mulsf3
+003806  07E534     RCALL ___fixunssfsi
+003808  980F10     MOV W0, [W14+18]
+00380A  980F21     MOV W1, [W14+20]
+299:                           
+300:                           lastVOCT1 = currentVOCT1;
+00380C  807230     MOV 0xE46, W0
+00380E  8870B0     MOV W0, 0xE16
+301:                           lastOSC1 = currentOSC1;
+003810  8071F0     MOV 0xE3E, W0
+003812  887070     MOV W0, 0xE0E
+302:                           
+303:                           /*
+304:                           totalADC=totalADC+(currentRELATION/4);
+305:                           phasor2 = IntToFreq(totalADC);
+306:                           
+307:                           lastRELATION = currentRELATION;
+308:                           */
+309:                       }
+310:                       
+311:                       if(currentRELATION != lastRELATION)
+003814  8071E1     MOV 0xE3C, W1
+003816  807060     MOV 0xE0C, W0
+003818  508F80     SUB W1, W0, [W15]
+00381A  320005     BRA Z, .L80
+312:                       {
+313:                           /*
+314:                           totalADC = currentOSC1 + currentVOCT1;
+315:                           totalADC=totalADC+(currentRELATION/4);
+316:                           phasor2 = IntToFreq(totalADC);
+317:                           */
+318:                           
+319:                           relation = currentRELATION/4;
+00381C  8071E0     MOV 0xE3C, W0
+00381E  DE0042     LSR W0, #2, W0
+003820  8871C0     MOV W0, relation
+320:                           lastRELATION = currentRELATION;
+003822  8071E0     MOV 0xE3C, W0
+003824  887060     MOV W0, 0xE0C
+321:                            
+322:                       }
+323:                       
+324:                       if((currentVOCT2 != lastVOCT2) || (currentOSC2 != lastOSC2))
+003826  807241     MOV 0xE48, W1
+003828  8070C0     MOV 0xE18, W0
+00382A  508F80     SUB W1, W0, [W15]
+00382C  3A0004     BRA NZ, .L81
+00382E  807201     MOV 0xE40, W1
+003830  807080     MOV 0xE10, W0
+003832  508F80     SUB W1, W0, [W15]
+003834  320017     BRA Z, .L82
+325:                       {
+326:                           totalADC = currentOSC2 + currentVOCT2;
+003836  807201     MOV 0xE40, W1
+003838  807240     MOV 0xE48, W0
+00383A  408000     ADD W1, W0, W0
+00383C  980740     MOV W0, [W14+8]
+327:                           
+328:                           phasor3 = IntToFreq(totalADC);
+00383E  90004E     MOV [W14+8], W0
+003840  07FCEA     RCALL IntToFreq
+003842  887330     MOV W0, phasor3
+003844  887341     MOV W1, 0xE68
+329:                           
+330:               
+331:                           
+332:                           /*
+333:                           //OSC 3 and 2 (left side)
+334:                           voltage = currentOSC2+currentVOCT2;
+335:                           voltage = voltage/4095;
+336:                           //voltage = voltage*5.0;
+337:                           //voltage = voltage/0.0833333;
+338:                           voltage = voltage* 60;  //the above is condensed to this
+339:                           frequency = F0*(powf(A,voltage));
+340:                           phasor3 = HZPHASOR * frequency;
+341:                           */
+342:                           lastVOCT2 = currentVOCT2;
+003846  807240     MOV 0xE48, W0
+003848  8870C0     MOV W0, 0xE18
+343:                           lastOSC2 = currentOSC2;
+00384A  807200     MOV 0xE40, W0
+00384C  887080     MOV W0, 0xE10
+344:                           
+345:                           totalADC=totalADC+(currentRELATION/4);
+00384E  8071E0     MOV 0xE3C, W0
+003850  DE0042     LSR W0, #2, W0
+003852  9000CE     MOV [W14+8], W1
+003854  408000     ADD W1, W0, W0
+003856  980740     MOV W0, [W14+8]
+346:                           phasor4 = IntToFreq(totalADC);
+003858  90004E     MOV [W14+8], W0
+00385A  07FCDD     RCALL IntToFreq
+00385C  887350     MOV W0, phasor4
+00385E  887361     MOV W1, 0xE6C
+347:                           
+348:                           lastRELATION = currentRELATION;
+003860  8071E0     MOV 0xE3C, W0
+003862  887060     MOV W0, 0xE0C
+349:                       }
+350:                       /*
+351:                       if(currentRELATION != lastRELATION)
+352:                       {
+353:                           totalADC = currentOSC2 + currentVOCT2;
+354:                           totalADC=totalADC+(currentRELATION/4);
+355:                           phasor4 = IntToFreq(totalADC);
+356:                       }
+357:                       */
+358:                       waveshape1=currentWAV1;
+003864  807210     MOV 0xE42, W0
+003866  887370     MOV W0, waveshape1
+359:                       waveshape2=currentWAV2;
+003868  807220     MOV 0xE44, W0
+00386A  887380     MOV W0, waveshape2
+360:                       
+361:                       setpoint = 0xFFF;
+00386C  20FFF0     MOV #0xFFF, W0
+00386E  200001     MOV #0x0, W1
+003870  8870F0     MOV W0, 0xE1E
+003872  887101     MOV W1, 0xE20
+362:                       setpoint = setpoint-currentNEUZ;
+003874  8070F2     MOV 0xE1E, W2
+003876  807103     MOV 0xE20, W3
+003878  807260     MOV 0xE4C, W0
+00387A  EB0080     CLR W1
+00387C  510000     SUB W2, W0, W0
+00387E  598081     SUBB W3, W1, W1
+003880  8870F0     MOV W0, 0xE1E
+003882  887101     MOV W1, 0xE20
+363:                       //setpoint = setpoint <<;
+364:                     
+365:                       }
+003884  37FEF9     BRA .L83
+366:                       
+367:                       //voltage
+368:                   
+369:               
+370:                   
+371:                   return 0;
+372:               }
+373:               
+374:               unsigned long int __attribute__((optimize("-O0"))) IntToFreq (unsigned int value)
+375:               {
+003216  FA000A     LNK #0xA
+003218  980740     MOV W0, [W14+8]
+376:                   unsigned int octave,pitch;
+377:                   unsigned long frequencyint;
+378:               
+379:                   
+380:                   octave = value / 819;    //octave now contains the octave above the lowest
+00321A  9000CE     MOV [W14+8], W1
+00321C  203330     MOV #0x333, W0
+00321E  780100     MOV W0, W2
+003220  090011     REPEAT #0x11
+003222  D88082     DIV.UW W1, W2
+003224  780F00     MOV W0, [W14]
+381:                   pitch = value % 819;     //pitch now contains the value between 0 and 819 which is the range between octaves
+003226  9000CE     MOV [W14+8], W1
+003228  203330     MOV #0x333, W0
+00322A  780100     MOV W0, W2
+00322C  090011     REPEAT #0x11
+00322E  D88082     DIV.UW W1, W2
+003230  FD0080     EXCH W0, W1
+003232  980710     MOV W0, [W14+2]
+382:                   //819 refers to 1V at the 0-4095 / 0-5V scale
+383:                   
+384:                   //what we're doing is F0*a^(semitone) * HZPHASOR
+385:                   //the exponent part is calculated with a lookup table to avoid the slow powf function
+386:                   //to reduce size, we're only saving a single octave of the exponent part, then multiplying by the number of octaves
+387:                   
+388:                   frequencyint = voctscale[(pitch>>1)];
+003234  90001E     MOV [W14+2], W0
+003236  D10000     LSR W0, W0
+003238  EB0080     CLR W1
+00323A  400000     ADD W0, W0, W0
+00323C  488081     ADDC W1, W1, W1
+00323E  208002     MOV #0x800, W2
+003240  400002     ADD W0, W2, W0
+003242  780010     MOV [W0], W0
+003244  EB0080     CLR W1
+003246  980720     MOV W0, [W14+4]
+003248  980731     MOV W1, [W14+6]
+389:                   //frequencyint = frequencyint * HZPHASOR;
+390:                   //frequencyint = frequencyint >> 16;    //won't fit in 32 bit
+391:                   frequencyint = (frequencyint>>1)*HZPHASOR;   //lose an lsb this way.
+00324A  90002E     MOV [W14+4], W0
+00324C  9000BE     MOV [W14+6], W1
+00324E  D10081     LSR W1, W1
+003250  D38000     RRC W0, W0
+003252  2A7842     MOV #0xA784, W2
+003254  B98902     MUL.SS W1, W2, W2
+003256  780102     MOV W2, W2
+003258  B90261     MUL.SU W0, #1, W4
+00325A  780184     MOV W4, W3
+00325C  410103     ADD W2, W3, W2
+00325E  2A7843     MOV #0xA784, W3
+003260  B80003     MUL.UU W0, W3, W0
+003262  410101     ADD W2, W1, W2
+003264  780082     MOV W2, W1
+003266  980720     MOV W0, [W14+4]
+003268  980731     MOV W1, [W14+6]
+00326A  980720     MOV W0, [W14+4]
+00326C  980731     MOV W1, [W14+6]
+392:                   frequencyint = frequencyint >> 15;
+00326E  90002E     MOV [W14+4], W0
+003270  9000BE     MOV [W14+6], W1
+003272  DD0941     SL W1, #1, W2
+003274  DE004F     LSR W0, #15, W0
+003276  710000     IOR W2, W0, W0
+003278  DE08CF     LSR W1, #15, W1
+00327A  980720     MOV W0, [W14+4]
+00327C  980731     MOV W1, [W14+6]
+393:                   frequencyint = frequencyint + HZPHASOR; //fixed point means we lose the original 1.xxx so we add it back
+00327E  90012E     MOV [W14+4], W2
+003280  9001BE     MOV [W14+6], W3
+003282  2A7840     MOV #0xA784, W0
+003284  200011     MOV #0x1, W1
+003286  400002     ADD W0, W2, W0
+003288  488083     ADDC W1, W3, W1
+00328A  980720     MOV W0, [W14+4]
+00328C  980731     MOV W1, [W14+6]
+394:               
+395:                   frequencyint = frequencyint * octavemultipler[octave];   //if we're at the first octave, 
+00328E  78001E     MOV [W14], W0
+003290  EB0080     CLR W1
+003292  400000     ADD W0, W0, W0
+003294  488081     ADDC W1, W1, W1
+003296  20B342     MOV #0xB34, W2
+003298  400002     ADD W0, W2, W0
+00329A  780010     MOV [W0], W0
+00329C  EB0080     CLR W1
+00329E  90013E     MOV [W14+6], W2
+0032A0  B99100     MUL.SS W2, W0, W2
+0032A2  780102     MOV W2, W2
+0032A4  9001AE     MOV [W14+4], W3
+0032A6  B99A01     MUL.SS W3, W1, W4
+0032A8  780184     MOV W4, W3
+0032AA  410103     ADD W2, W3, W2
+0032AC  9001AE     MOV [W14+4], W3
+0032AE  B81800     MUL.UU W3, W0, W0
+0032B0  410101     ADD W2, W1, W2
+0032B2  780082     MOV W2, W1
+0032B4  980720     MOV W0, [W14+4]
+0032B6  980731     MOV W1, [W14+6]
+0032B8  980720     MOV W0, [W14+4]
+0032BA  980731     MOV W1, [W14+6]
+396:                   return (frequencyint * F0);
+0032BC  90012E     MOV [W14+4], W2
+0032BE  9001BE     MOV [W14+6], W3
+0032C0  DD1843     SL W3, #3, W0
+0032C2  DE10CD     LSR W2, #13, W1
+0032C4  700081     IOR W0, W1, W1
+0032C6  DD1043     SL W2, #3, W0
+397:                   
+398:               }
+0032C8  FA8000     ULNK
+0032CA  060000     RETURN
+399:               unsigned int ReadAIN (unsigned char channel)
+400:               {
+401:                   ADCON1 = 0x00E0;
+0032CC  200E01     MOV #0xE0, W1
+0032CE  881501     MOV W1, ADCON1
+402:                   ADCON2 = 0x0000; //channel 0
+0032D0  EF22A2     CLR ADCON2
+403:                   //ADCON3 = 0X1F3F;
+404:                   ADCON3 = 0x0505;
+0032D2  205051     MOV #0x505, W1
+0032D4  881521     MOV W1, ADCON3
+405:                   
+406:                   ADCHS=channel&0x0F;
+0032D6  FB8000     ZE W0, W0
+0032D8  6000EF     AND W0, #0xF, W1
+0032DA  881531     MOV W1, ADCHS
+407:                   ADPCFG=~((unsigned int)1<<channel);
+0032DC  200011     MOV #0x1, W1
+0032DE  DD0800     SL W1, W0, W0
+0032E0  EA8000     COM W0, W0
+0032E2  881540     MOV W0, ADPCFG
+408:                   ADCSSL=0;
+0032E4  EF22AA     CLR ADCSSL
+409:                   
+410:                   ADCON1bits.ADON = 1;
+0032E6  A8E2A1     BSET 0x2A1, #7
+411:                   ADCON1bits.SAMP = 1;
+0032E8  A822A0     BSET ADCON1, #1
+412:                   
+413:                   while(!ADCON1bits.DONE);
+0032EA  AB02A0     BTST ADCON1, #0
+0032EC  32FFFE     BRA Z, .L3
+414:                   return ADCBUF0;
+0032EE  801400     MOV ADCBUF0, W0
+415:               }
+0032F0  060000     RETURN
+416:               
+417:               
+418:               void chipconfig (void)
+419:               {
+420:                   //code protection sequence
+421:                   OSCCONL = 0x46;
+0032F2  B3C460     MOV.B #0x46, W0
+0032F4  B7E742     MOV.B WREG, OSCCON
+422:                   OSCCONL = 0x57;
+0032F6  404071     ADD.B W0, #0x11, W0
+0032F8  B7E742     MOV.B WREG, OSCCON
+423:                   OSCCONL = 0x00;//real osccon value here
+0032FA  EF6742     CLR.B OSCCON
+424:                   OSCCONH = 0x78;
+0032FC  B3C780     MOV.B #0x78, W0
+0032FE  B7E743     MOV.B WREG, 0x743
+425:                   OSCCONH = 0x9A;
+003300  B3C9A0     MOV.B #0x9A, W0
+003302  B7E743     MOV.B WREG, 0x743
+426:                   OSCCONH = 0x03;//real oscconh here
+003304  B3C030     MOV.B #0x3, W0
+003306  B7E743     MOV.B WREG, 0x743
+427:                   //write oscconh here
+428:                   
+429:                   while(OSCCONbits.LOCK ==0);
+003308  200201     MOV #0x20, W1
+00330A  803A12     MOV OSCCON, W2
+00330C  608002     AND W1, W2, W0
+00330E  32FFFD     BRA Z, .L6
+430:                   
+431:                   
+432:                   U1MODEbits.UARTEN=0;
+003310  A9E20D     BCLR 0x20D, #7
+433:               
+434:                   T1CON = 0;
+003312  EF2104     CLR T1CON
+435:                   TMR1 = 0;
+003314  EF2100     CLR TMR1
+436:               
+437:                   IPC0bits.T1IP = 1;
+003316  28FFF0     MOV #0x8FFF, W0
+003318  B60094     AND IPC0, WREG
+00331A  A0C000     BSET W0, #12
+00331C  8804A0     MOV W0, IPC0
+438:                   IFS0bits.T1IF = 0;
+00331E  A96084     BCLR IFS0, #3
+439:                   IEC0bits.T1IE = 1;
+003320  A8608C     BSET IEC0, #3
+440:                   T1CON = 0;
+003322  EF2104     CLR T1CON
+441:                   INTCON1 = 0x8000;
+003324  280000     MOV #0x8000, W0
+003326  880400     MOV W0, INTCON1
+442:                   INTCON2 = 0x0000;
+003328  EF2082     CLR INTCON2
+443:               
+444:                   
+445:                   AIN = 1;
+00332A  A802C6     BSET TRISB, #0
+446:               
+447:                   
+448:                   //SPI SETUP
+449:                   
+450:                   TRISFbits.TRISF6 = 0;   //sck
+00332C  A9C2DE     BCLR TRISF, #6
+451:                   TRISFbits.TRISF3 = 0;   //sdo
+00332E  A962DE     BCLR TRISF, #3
+452:                   TRISFbits.TRISF4 = 0;   //cs2
+003330  A982DE     BCLR TRISF, #4
+453:                   TRISDbits.TRISD8 = 0;   //cs1
+003332  A902D3     BCLR 0x2D3, #0
+454:                   TRISFbits.TRISF5 = 0;  //ldac
+003334  A9A2DE     BCLR TRISF, #5
+455:               
+456:                   
+457:                   TRISDbits.TRISD9 = 0;   //Neuz out
+003336  A922D3     BCLR 0x2D3, #1
+458:                   
+459:                   //AIN 0-9
+460:                   TRISBbits.TRISB0 = 1;
+003338  A802C6     BSET TRISB, #0
+461:                   TRISBbits.TRISB1 = 1;
+00333A  A822C6     BSET TRISB, #1
+462:                   TRISBbits.TRISB2 = 1;
+00333C  A842C6     BSET TRISB, #2
+463:                   TRISBbits.TRISB3 = 1;
+00333E  A862C6     BSET TRISB, #3
+464:                   TRISBbits.TRISB4 = 1;
+003340  A882C6     BSET TRISB, #4
+465:                   TRISBbits.TRISB5 = 1;
+003342  A8A2C6     BSET TRISB, #5
+466:                   TRISBbits.TRISB6 = 1;
+003344  A8C2C6     BSET TRISB, #6
+467:                   TRISBbits.TRISB7 = 1;
+003346  A8E2C6     BSET TRISB, #7
+468:                   TRISBbits.TRISB8 = 1;
+003348  A802C7     BSET 0x2C7, #0
+469:                   TRISBbits.TRISB9 = 1;
+00334A  A822C7     BSET 0x2C7, #1
+470:                   
+471:                   #define CS1 LATDbits.LATD8
+472:                   #define CS2 LATFbits.LATF4
+473:                   #define LDAC LATFbits.LATF5
+474:                   LDAC = 1;
+00334C  A8A2E2     BSET LATF, #5
+475:                   CS1 = 1;
+00334E  A802D7     BSET 0x2D7, #0
+476:                   CS2 = 1;
+003350  A882E2     BSET LATF, #4
+477:                   SPI1STATbits.SPIROV = 0;
+003352  A9C220     BCLR SPI1STAT, #6
+478:                   SPI1CON = 0x003F;
+003354  2003F0     MOV #0x3F, W0
+003356  881110     MOV W0, SPI1CON
+479:                   SPI1CONbits.CKE = 0;
+003358  A90223     BCLR 0x223, #0
+480:                   SPI1CONbits.CKP = 1;
+00335A  A8C222     BSET SPI1CON, #6
+481:                   //SPI1CONbits.MODE16 = 1;
+482:                   SPI1STATbits.SPIEN = 1;
+00335C  A8E221     BSET 0x221, #7
+483:                   
+484:                   //Sample Rate Timer setup (timer1)
+485:                   
+486:                   
+487:                   
+488:               }
+00335E  060000     RETURN
+489:               
+490:               void __attribute__((optimize("-O0"))) PutSPIByte (unsigned char data)
+491:               {
+003360  FA0004     LNK #0x4
+003362  984720     MOV.B W0, [W14+2]
+492:                   unsigned char temp;    
+493:                   temp = SPI1BUF;
+003364  801120     MOV SPI1BUF, W0
+003366  784F00     MOV.B W0, [W14]
+494:                   Nop();
+003368  000000     NOP
+495:                   SPI1BUF = data;
+00336A  90402E     MOV.B [W14+2], W0
+00336C  FB8000     ZE W0, W0
+00336E  881120     MOV W0, SPI1BUF
+496:                   while(SPI1STATbits.SPITBF ==0);
+003370  000000     NOP
+003372  801100     MOV SPI1STAT, W0
+003374  600062     AND W0, #0x2, W0
+003376  E00000     CP0 W0
+003378  32FFFC     BRA Z, .L9
+497:               }
+00337A  FA8000     ULNK
+00337C  060000     RETURN
+498:               
+499:               void __attribute__((optimize("-O0"))) PutSPIByte16 (unsigned int data)
+500:               {
+00337E  FA0004     LNK #0x4
+003380  980710     MOV W0, [W14+2]
+501:                   unsigned int temp;    
+502:                   temp = SPI1BUF;
+003382  801121     MOV SPI1BUF, W1
+003384  780F01     MOV W1, [W14]
+503:                   Nop();
+003386  000000     NOP
+504:                   SPI1BUF = data;
+003388  90009E     MOV [W14+2], W1
+00338A  881121     MOV W1, SPI1BUF
+505:                   while(SPI1STATbits.SPITBF ==0);
+00338C  000000     NOP
+00338E  801100     MOV SPI1STAT, W0
+003390  600062     AND W0, #0x2, W0
+003392  E00000     CP0 W0
+003394  32FFFC     BRA Z, .L11
+506:               }
+003396  FA8000     ULNK
+003398  060000     RETURN
+507:               
+508:               void __attribute__((optimize("-O0"))) WriteDac(unsigned char DAC,signed int data1, signed int data2)
+509:               {
+00339A  FA0008     LNK #0x8
+00339C  984720     MOV.B W0, [W14+2]
+00339E  980721     MOV W1, [W14+4]
+0033A0  980732     MOV W2, [W14+6]
+510:                   data1=data1+2047;
+0033A2  9000AE     MOV [W14+4], W1
+0033A4  207FF0     MOV #0x7FF, W0
+0033A6  408000     ADD W1, W0, W0
+0033A8  980720     MOV W0, [W14+4]
+511:                   data2=data2+2047;
+0033AA  9000BE     MOV [W14+6], W1
+0033AC  207FF0     MOV #0x7FF, W0
+0033AE  408000     ADD W1, W0, W0
+0033B0  980730     MOV W0, [W14+6]
+512:                   
+513:                   if(data1 < 0)
+0033B2  90002E     MOV [W14+4], W0
+0033B4  E00000     CP0 W0
+0033B6  3D0002     BRA GE, .L13
+514:                       data1=0;
+0033B8  EB0000     CLR W0
+0033BA  980720     MOV W0, [W14+4]
+515:                   if(data2 < 0)
+0033BC  90003E     MOV [W14+6], W0
+0033BE  E00000     CP0 W0
+0033C0  3D0002     BRA GE, .L14
+516:                       data2=0;
+0033C2  EB0000     CLR W0
+0033C4  980730     MOV W0, [W14+6]
+517:                   #define SPIdelay() Nop(); Nop(); Nop();
+518:                   unsigned char highbyte,lowbyte;
+519:                   //0001 is high gain
+520:                   //0011 is low gain
+521:                   lowbyte = data1 & 0xff;
+0033C6  90002E     MOV [W14+4], W0
+0033C8  784F00     MOV.B W0, [W14]
+522:                   highbyte = (data1 >> 8);
+0033CA  90002E     MOV [W14+4], W0
+0033CC  DE8048     ASR W0, #8, W0
+0033CE  984710     MOV.B W0, [W14+1]
+523:                   highbyte = highbyte | 0b00010000;
+0033D0  90401E     MOV.B [W14+1], W0
+0033D2  A04400     BSET.B W0, #4
+0033D4  984710     MOV.B W0, [W14+1]
+524:               
+525:                   if(DAC == 1)
+0033D6  90402E     MOV.B [W14+2], W0
+0033D8  504FE1     SUB.B W0, #0x1, [W15]
+0033DA  3A0002     BRA NZ, .L15
+526:                       CS1 = 0;
+0033DC  A902D7     BCLR 0x2D7, #0
+0033DE  370001     BRA .L16
+527:                   else
+528:                       CS2 = 0;
+0033E0  A982E2     BCLR LATF, #4
+529:                   Nop();
+0033E2  000000     NOP
+530:                   PutSPIByte (highbyte);
+0033E4  90401E     MOV.B [W14+1], W0
+0033E6  07FFBC     RCALL PutSPIByte
+531:                   PutSPIByte(lowbyte);
+0033E8  78401E     MOV.B [W14], W0
+0033EA  07FFBA     RCALL PutSPIByte
+532:               
+533:                   Nop();
+0033EC  000000     NOP
+534:                   if(DAC == 1)
+0033EE  90402E     MOV.B [W14+2], W0
+0033F0  504FE1     SUB.B W0, #0x1, [W15]
+0033F2  3A0002     BRA NZ, .L17
+535:                       CS1 = 1;
+0033F4  A802D7     BSET 0x2D7, #0
+0033F6  370001     BRA .L18
+536:                   else
+537:                       CS2 = 1;
+0033F8  A882E2     BSET LATF, #4
+538:                   
+539:                   SPIdelay();
+0033FA  000000     NOP
+0033FC  000000     NOP
+0033FE  000000     NOP
+540:                   
+541:                   //Send the B
+542:                   lowbyte = data2 & 0xff;
+003400  90003E     MOV [W14+6], W0
+003402  784F00     MOV.B W0, [W14]
+543:                   highbyte = (data2 >> 8);
+003404  90003E     MOV [W14+6], W0
+003406  DE8048     ASR W0, #8, W0
+003408  984710     MOV.B W0, [W14+1]
+544:                   highbyte = highbyte | 0b10010000;
+00340A  90409E     MOV.B [W14+1], W1
+00340C  B3C900     MOV.B #0x90, W0
+00340E  70C000     IOR.B W1, W0, W0
+003410  984710     MOV.B W0, [W14+1]
+545:                   if(DAC == 1)
+003412  90402E     MOV.B [W14+2], W0
+003414  504FE1     SUB.B W0, #0x1, [W15]
+003416  3A0002     BRA NZ, .L19
+546:                       CS1 = 0;
+003418  A902D7     BCLR 0x2D7, #0
+00341A  370001     BRA .L20
+547:                   else
+548:                       CS2 = 0;
+00341C  A982E2     BCLR LATF, #4
+549:                   Nop();
+00341E  000000     NOP
+550:                   PutSPIByte (highbyte);
+003420  90401E     MOV.B [W14+1], W0
+003422  07FF9E     RCALL PutSPIByte
+551:                   PutSPIByte(lowbyte);
+003424  78401E     MOV.B [W14], W0
+003426  07FF9C     RCALL PutSPIByte
+552:                   Nop();
+003428  000000     NOP
+553:                   CS1 = 1;
+00342A  A802D7     BSET 0x2D7, #0
+554:                   CS2 = 1;
+00342C  A882E2     BSET LATF, #4
+555:               
+556:                   LDAC = 0;
+00342E  A9A2E2     BCLR LATF, #5
+557:                   SPIdelay();
+003430  000000     NOP
+003432  000000     NOP
+003434  000000     NOP
+558:                   LDAC = 1;
+003436  A8A2E2     BSET LATF, #5
+559:                   
+560:                   
+561:                   
+562:               }
+003438  FA8000     ULNK
+00343A  060000     RETURN
+563:               
+564:               signed int getSample (unsigned int index, unsigned int blend)
+565:               {
+0034A8  BE9F88     MOV.D W8, [W15++]
+0034AA  BE9F8A     MOV.D W10, [W15++]
+0034AC  780480     MOV W0, W9
+566:                   
+567:                   signed  int sample=0;   //if you change this to long int, it stops working
+00363C  EB0000     CLR W0
+568:                   //sine, tri, evenangle,eventooth,saw,square -in order of harmonics
+569:                   //for 6 waveforms, need 20 point steps (divide by two) - todo add more waveforms
+570:                   #define BLENDSTEPS 16   //works with 10, not with 20, works with 15
+571:                   #define NUM_WAVES 9
+572:                   #define SCALER (4095/((NUM_WAVES-1)*BLENDSTEPS))
+573:                   unsigned int blender;
+574:                   blender = blend;
+575:                   //blend is max 4095
+576:                   blender = blender/SCALER;
+0034AE  2001F2     MOV #0x1F, W2
+0034B0  090011     REPEAT #0x11
+0034B2  D88082     DIV.UW W1, W2
+0034B4  780400     MOV W0, W8
+0034B6  200800     MOV #0x80, W0
+0034B8  540F80     SUB W8, W0, [W15]
+0034BA  360001     BRA LEU, .L37
+0034BC  780400     MOV W0, W8
+577:                   //blender needs to be max (num_waves-1 * BLENDSTEPS)
+578:                       //blend contains a value between 0 and 50    
+579:                   if(blender>((NUM_WAVES-1)*BLENDSTEPS))
+580:                       blender=(NUM_WAVES-1)*BLENDSTEPS;
+581:                   else if (blender<0)
+582:                       blender = 0;
+583:                   
+584:                   
+585:                   signed  int sample2;  //you get half sample rate for some reason...
+586:               
+587:                   /*
+588:                   0 = pure sinewave
+589:                    * 0-10 blend of sine to tri
+590:                    * 10 = pure tri
+591:                    * 10-20 = blend of tri and evenangle
+592:                    * 20 = pure evenangle
+593:                    * 20-30 = blend of evenangle and eventooth
+594:                    * 30 = pure eventooth
+595:                    * 30-40 = blend of eventooth and saw
+596:                    * 40 = pure saw
+597:                    * 40-50 = blend of saw and square
+598:                    * 50 = pure square     
+599:                    */
+600:                   
+601:                   if(blender % BLENDSTEPS == 0)
+0034BE  64006F     AND W8, #0xF, W0
+0034C0  3A0040     BRA NZ, .L38
+602:                   {
+603:                       switch(blender){
+0034C2  200400     MOV #0x40, W0
+0034C4  540F80     SUB W8, W0, [W15]
+0034C6  32002C     BRA Z, .L44
+0034C8  3E000D     BRA GTU, .L49
+0034CA  540FF0     SUB W8, #0x10, [W15]
+0034CC  32001D     BRA Z, .L41
+0034CE  3E0003     BRA GTU, .L50
+0034D0  E00008     CP0 W8
+0034D2  320017     BRA Z, .L40
+0034D4  3700B3     BRA .L60
+0034D6  200200     MOV #0x20, W0
+0034D8  540F80     SUB W8, W0, [W15]
+0034DA  32001A     BRA Z, .L42
+0034DC  400070     ADD W0, #0x10, W0
+0034DE  540F80     SUB W8, W0, [W15]
+0034E0  3A00AD     BRA NZ, .L60
+0034E2  37001A     BRA .L61
+0034E4  200600     MOV #0x60, W0
+0034E6  540F80     SUB W8, W0, [W15]
+0034E8  320021     BRA Z, .L46
+0034EA  3E0004     BRA GTU, .L51
+0034EC  500070     SUB W0, #0x10, W0
+0034EE  540F80     SUB W8, W0, [W15]
+0034F0  3A00A5     BRA NZ, .L60
+0034F2  370019     BRA .L62
+0034F4  200700     MOV #0x70, W0
+0034F6  540F80     SUB W8, W0, [W15]
+0034F8  32001C     BRA Z, .L47
+0034FA  400070     ADD W0, #0x10, W0
+0034FC  540F80     SUB W8, W0, [W15]
+0034FE  3A009E     BRA NZ, .L60
+003500  37001C     BRA .L63
+604:                           case 0:
+605:                               sample=triwave(index);
+003502  780009     MOV W9, W0
+003504  07FFBA     RCALL triwave
+606:                               break;
+003506  37009B     BRA .L39
+607:                           case BLENDSTEPS:
+608:                               sample = evenangle[index];
+003508  D00489     SL W9, W9
+00350A  2AA160     MOV #0xAA16, W0
+00350C  7C8060     MOV [W0+W9], W0
+609:                               break;
+00350E  370097     BRA .L39
+610:                           case (BLENDSTEPS*2):
+611:                               sample = eventooth[index];
+003510  D00489     SL W9, W9
+003512  2A2160     MOV #0xA216, W0
+003514  7C8060     MOV [W0+W9], W0
+612:                               break;
+003516  370093     BRA .L39
+613:                               
+614:                           case BLENDSTEPS*3:
+615:                               sample = cellowave[index];
+003518  D00489     SL W9, W9
+00351A  28A160     MOV #0x8A16, W0
+00351C  7C8060     MOV [W0+W9], W0
+616:                               break;    
+00351E  37008F     BRA .L39
+617:                               
+618:                           case BLENDSTEPS*4:
+619:                               sample = sawwave(index);
+003520  780009     MOV W9, W0
+003522  07FF93     RCALL sawwave
+620:                               break;
+003524  37008C     BRA .L39
+621:                           case BLENDSTEPS*5:
+622:                               sample = squarewave(index);
+003526  780009     MOV W9, W0
+003528  07FF89     RCALL squarewave
+623:                               break;
+00352A  370089     BRA .L39
+624:                           case BLENDSTEPS*6:
+625:                               sample = vgamewave(index);
+00352C  780009     MOV W9, W0
+00352E  07FF93     RCALL vgamewave
+626:                               break;
+003530  370086     BRA .L39
+627:                           case BLENDSTEPS*7:
+628:                               sample = pluckwave[index];
+003532  D00489     SL W9, W9
+003534  29A160     MOV #0x9A16, W0
+003536  7C8060     MOV [W0+W9], W0
+629:                               break;
+003538  370082     BRA .L39
+630:                           case BLENDSTEPS*8:
+631:                               sample = fmwave[index];
+00353A  D00489     SL W9, W9
+00353C  292160     MOV #0x9216, W0
+00353E  7C8060     MOV [W0+W9], W0
+632:                               break;                
+003540  37007E     BRA .L39
+633:                       }
+634:                   }
+635:                   else    //sample is not a pure wave, some mixing needs to be done
+636:                   {
+637:               
+638:                       if(blender<(BLENDSTEPS))
+003542  540FEF     SUB W8, #0xF, [W15]
+003544  3E000B     BRA GTU, .L52
+639:                       {
+640:               
+641:                           sample = triwave(index);
+003546  780009     MOV W9, W0
+003548  07FF98     RCALL triwave
+642:                           sample = __builtin_mulsu(sample,(BLENDSTEPS - blender));
+00354A  140170     SUBR W8, #0x10, W2
+00354C  B90102     MUL.SU W0, W2, W2
+643:                           //sample = sample * (BLENDSTEPS-blender);
+644:                           sample2 = evenangle[index];
+00354E  D00489     SL W9, W9
+645:                           sample2 = sample2 * (blender); 
+003550  2AA160     MOV #0xAA16, W0
+003552  7C8060     MOV [W0+W9], W0
+003554  B9C000     MUL.SS W8, W0, W0
+646:                           sample = sample+sample2;
+003556  400002     ADD W0, W2, W0
+647:                           //for BLENDSTEPS == 16, >>4
+648:                           sample = sample>>4;
+003558  DE8044     ASR W0, #4, W0
+00355A  370071     BRA .L39
+649:                           
+650:                       }
+651:                       else if(blender<(BLENDSTEPS*2))
+00355C  540FFF     SUB W8, #0x1F, [W15]
+00355E  3E000E     BRA GTU, .L53
+652:                       {
+653:                           blender = blender-(BLENDSTEPS);
+003560  540470     SUB W8, #0x10, W8
+654:                           sample = evenangle[index];
+003564  B84961     MUL.UU W9, #1, W2
+003566  410102     ADD W2, W2, W2
+003568  498183     ADDC W3, W3, W3
+655:                           sample = sample * (BLENDSTEPS-blender);
+003562  140270     SUBR W8, #0x10, W4
+00356A  2AA160     MOV #0xAA16, W0
+00356C  790060     MOV [W0+W2], W0
+00356E  B9A200     MUL.SS W4, W0, W4
+656:                           sample2 = eventooth[index];
+657:                           sample2 = sample2 * (blender); 
+003570  2A2160     MOV #0xA216, W0
+003572  790060     MOV [W0+W2], W0
+003574  B9C000     MUL.SS W8, W0, W0
+658:                           sample = sample + sample2;
+003576  400004     ADD W0, W4, W0
+659:                           sample = sample>>4;
+003578  DE8044     ASR W0, #4, W0
+00357A  370061     BRA .L39
+660:                       }
+661:                       
+662:                       else if(blender<(BLENDSTEPS*3))
+00357C  2002F0     MOV #0x2F, W0
+00357E  540F80     SUB W8, W0, [W15]
+003580  3E000E     BRA GTU, .L54
+663:                       {
+664:                           blender = blender-(BLENDSTEPS*2);
+003582  B10208     SUB #0x20, W8
+665:                           sample = eventooth[index];
+003586  B84961     MUL.UU W9, #1, W2
+003588  410102     ADD W2, W2, W2
+00358A  498183     ADDC W3, W3, W3
+666:                           sample = sample * (BLENDSTEPS-blender);
+003584  140270     SUBR W8, #0x10, W4
+00358C  2A2160     MOV #0xA216, W0
+00358E  790060     MOV [W0+W2], W0
+003590  B9A200     MUL.SS W4, W0, W4
+667:                           sample2 = cellowave[index];
+668:                           sample2 = sample2 * (blender);   
+003592  28A160     MOV #0x8A16, W0
+003594  790060     MOV [W0+W2], W0
+003596  B9C000     MUL.SS W8, W0, W0
+669:                           sample = sample+sample2;
+003598  400004     ADD W0, W4, W0
+670:                           sample = sample>>4;            
+00359A  DE8044     ASR W0, #4, W0
+00359C  370050     BRA .L39
+671:                           
+672:                       }            
+673:               
+674:                       else if(blender<(BLENDSTEPS*4))
+00359E  2003F0     MOV #0x3F, W0
+0035A0  540F80     SUB W8, W0, [W15]
+0035A2  3E000C     BRA GTU, .L55
+675:                       {
+676:                           blender = blender-(BLENDSTEPS*3);
+0035A4  B10308     SUB #0x30, W8
+677:                           sample = cellowave[index];
+0035A8  D00009     SL W9, W0
+678:                           sample = sample * (BLENDSTEPS-blender);
+0035A6  140570     SUBR W8, #0x10, W10
+0035AA  28A161     MOV #0x8A16, W1
+0035AC  780061     MOV [W1+W0], W0
+0035AE  B9D500     MUL.SS W10, W0, W10
+679:                           sample2 = sawwave(index);
+0035B0  780009     MOV W9, W0
+0035B2  07FF4B     RCALL sawwave
+680:                           sample2 = sample2 * (blender);   
+0035B4  B98008     MUL.SS W0, W8, W0
+681:                           sample = sample+sample2;
+0035B6  450000     ADD W10, W0, W0
+682:                           sample = sample>>4;            
+0035B8  DE8044     ASR W0, #4, W0
+0035BA  370041     BRA .L39
+683:                           
+684:                       }        
+685:                       else if(blender<(BLENDSTEPS*5))
+0035BC  2004F0     MOV #0x4F, W0
+0035BE  540F80     SUB W8, W0, [W15]
+0035C0  3E000B     BRA GTU, .L56
+686:                               
+687:                       {
+688:                           blender = blender-(BLENDSTEPS*4);
+0035C2  B10408     SUB #0x40, W8
+689:                           sample = sawwave(index);
+0035C4  780009     MOV W9, W0
+0035C6  07FF41     RCALL sawwave
+690:                           sample = sample * (BLENDSTEPS-blender);
+0035C8  1400F0     SUBR W8, #0x10, W1
+0035CA  B98501     MUL.SS W0, W1, W10
+691:                           sample2 = squarewave(index);
+0035CC  780009     MOV W9, W0
+0035CE  07FF36     RCALL squarewave
+692:                           sample2 = sample2 *(blender); 
+0035D0  B98008     MUL.SS W0, W8, W0
+693:                           sample = sample+sample2;
+0035D2  450000     ADD W10, W0, W0
+694:                           sample = sample>>4;            
+0035D4  DE8044     ASR W0, #4, W0
+0035D6  370033     BRA .L39
+695:                       }
+696:                       
+697:                       else if(blender<(BLENDSTEPS*6))
+0035D8  2005F0     MOV #0x5F, W0
+0035DA  540F80     SUB W8, W0, [W15]
+0035DC  3E000B     BRA GTU, .L57
+698:                               
+699:                       {
+700:                           blender = blender-(BLENDSTEPS*5);
+0035DE  B10508     SUB #0x50, W8
+701:                           sample = squarewave(index);
+0035E0  780009     MOV W9, W0
+0035E2  07FF2C     RCALL squarewave
+702:                           sample = sample * (BLENDSTEPS-blender);
+0035E4  1400F0     SUBR W8, #0x10, W1
+0035E6  B98501     MUL.SS W0, W1, W10
+703:                           sample2 = vgamewave(index);
+0035E8  780009     MOV W9, W0
+0035EA  07FF35     RCALL vgamewave
+704:                           sample2 = sample2 *(blender); 
+0035EC  B98008     MUL.SS W0, W8, W0
+705:                           sample = sample+sample2;
+0035EE  450000     ADD W10, W0, W0
+706:                           sample = sample>>4;            
+0035F0  DE8044     ASR W0, #4, W0
+0035F2  370025     BRA .L39
+707:                       }
+708:                       
+709:                       else if(blender<(BLENDSTEPS*7))
+0035F4  2006F0     MOV #0x6F, W0
+0035F6  540F80     SUB W8, W0, [W15]
+0035F8  3E000D     BRA GTU, .L58
+710:                               
+711:                       {
+712:                           blender = blender-(BLENDSTEPS*6);
+0035FA  B10608     SUB #0x60, W8
+713:                           sample = vgamewave(index);
+0035FC  780009     MOV W9, W0
+0035FE  07FF2B     RCALL vgamewave
+003600  780100     MOV W0, W2
+714:                           sample = sample * (BLENDSTEPS-blender);
+003602  1400F0     SUBR W8, #0x10, W1
+003604  B99101     MUL.SS W2, W1, W2
+715:                           sample2 = pluckwave[index];
+003606  D00489     SL W9, W9
+716:                           sample2 = sample2 *(blender); 
+003608  29A160     MOV #0x9A16, W0
+00360A  7C8060     MOV [W0+W9], W0
+00360C  B9C000     MUL.SS W8, W0, W0
+717:                           sample = sample+sample2;
+00360E  400002     ADD W0, W2, W0
+718:                           sample = sample>>4;            
+003610  DE8044     ASR W0, #4, W0
+003612  370015     BRA .L39
+719:                       }
+720:               
+721:                       else if(blender<(BLENDSTEPS*8))
+003614  2007F0     MOV #0x7F, W0
+003616  540F80     SUB W8, W0, [W15]
+003618  3E000E     BRA GTU, .L59
+722:                               
+723:                       {
+724:                           blender = blender-(BLENDSTEPS*7);
+00361A  B10708     SUB #0x70, W8
+725:                           sample = pluckwave[index];
+00361E  B84861     MUL.UU W9, #1, W0
+003620  400000     ADD W0, W0, W0
+003622  488081     ADDC W1, W1, W1
+726:                           sample = sample * (BLENDSTEPS-blender);
+00361C  1401F0     SUBR W8, #0x10, W3
+003624  29A162     MOV #0x9A16, W2
+003626  780162     MOV [W2+W0], W2
+003628  B99902     MUL.SS W3, W2, W2
+727:                           sample2 = fmwave[index];
+728:                           sample2 = sample2 *(blender); 
+00362A  292164     MOV #0x9216, W4
+00362C  780064     MOV [W4+W0], W0
+00362E  B9C000     MUL.SS W8, W0, W0
+729:                           sample = sample+sample2;
+003630  400002     ADD W0, W2, W0
+730:                           sample = sample>>4;            
+003632  DE8044     ASR W0, #4, W0
+003634  370004     BRA .L39
+731:                       }        
+732:                       else
+733:                       {
+734:                           sample = triwave(index);   //default value in case anything messes up
+003636  780009     MOV W9, W0
+003638  07FF20     RCALL triwave
+00363A  370001     BRA .L39
+735:                       }    
+736:                       
+737:                   }
+738:                       
+739:                   return sample;
+740:               }
+00363E  BE054F     MOV.D [--W15], W10
+003640  BE044F     MOV.D [--W15], W8
+003642  060000     RETURN
+741:               
+742:               signed int squarewave (unsigned int acc)
+743:               {
+00343C  780100     MOV W0, W2
+744:                   if(acc<512)
+003440  201FF1     MOV #0x1FF, W1
+003442  510F81     SUB W2, W1, [W15]
+003444  3E0001     BRA GTU, .L22
+745:                       return 2047;
+003446  207FF0     MOV #0x7FF, W0
+746:                   else
+747:                       return -2047;
+00343E  2F8010     MOV #0xF801, W0
+748:               }
+003448  060000     RETURN
+749:               signed int sawwave (unsigned int acc)
+750:               {
+751:                   int value;
+752:                   value = 2047-(acc*4);
+00344A  DD0042     SL W0, #2, W0
+00344C  207FF1     MOV #0x7FF, W1
+00344E  508000     SUB W1, W0, W0
+003450  3B0001     BRA NN, .L25
+003452  EB0000     CLR W0
+753:                   if(value<0)
+754:                   {
+755:                       value = 0;
+756:                   }
+757:                   return (unsigned)value;
+758:               }
+003454  060000     RETURN
+759:               
+760:               signed int vgamewave (unsigned int acc)
+761:               {
+003456  780080     MOV W0, W1
+762:                   if(acc<200)
+00345A  200C72     MOV #0xC7, W2
+00345C  508F82     SUB W1, W2, [W15]
+00345E  36000C     BRA LEU, .L27
+763:                       return 0;
+003458  EB0000     CLR W0
+764:                   else if(acc>849)
+003460  203512     MOV #0x351, W2
+003462  508F82     SUB W1, W2, [W15]
+003464  3E0009     BRA GTU, .L27
+765:                       return 0;
+766:                   else if(acc>549)
+003468  202252     MOV #0x225, W2
+00346A  508F82     SUB W1, W2, [W15]
+00346C  3E0005     BRA GTU, .L27
+767:                       return -32;
+003466  2FFE00     MOV #0xFFE0, W0
+768:                   else
+769:                       return (partialvgame[acc-200]);
+00346E  2FF380     MOV #0xFF38, W0
+003470  400001     ADD W0, W1, W0
+003472  D00000     SL W0, W0
+003474  20B4C1     MOV #0xB4C, W1
+003476  780061     MOV [W1+W0], W0
+770:               }
+003478  060000     RETURN
+771:               signed int triwave (unsigned int acc)
+772:               {
+773:                   if(acc<=256)
+00347A  201001     MOV #0x100, W1
+00347C  500F81     SUB W0, W1, [W15]
+00347E  3E0002     BRA GTU, .L32
+774:                   {
+775:                       return (acc*7);
+003480  B90067     MUL.SU W0, #7, W0
+003482  370011     BRA .L33
+776:                   }
+777:                   else if(acc<=512)
+003484  202001     MOV #0x200, W1
+003486  500F81     SUB W0, W1, [W15]
+003488  3E0003     BRA GTU, .L34
+778:                   {
+779:                       acc=acc-256;
+780:                       acc = 256 - acc;
+00348A  508000     SUB W1, W0, W0
+781:                       return (acc*7);
+00348C  B90067     MUL.SU W0, #7, W0
+00348E  37000B     BRA .L33
+782:                   }
+783:                   else if(acc<=768)
+003490  203001     MOV #0x300, W1
+003492  500F81     SUB W0, W1, [W15]
+003494  3E0004     BRA GTU, .L35
+784:                   {
+785:                       acc = acc-512;
+003496  B12000     SUB #0x200, W0
+786:                       return 0-(acc*7);
+003498  B90067     MUL.SU W0, #7, W0
+00349A  EA0000     NEG W0, W0
+00349C  370004     BRA .L33
+787:                   }
+788:                   else
+789:                   {
+790:                       acc= acc-768;
+791:                       acc=256-acc;
+00349E  204001     MOV #0x400, W1
+0034A0  508000     SUB W1, W0, W0
+792:                       return 0-(acc*7);
+0034A2  B90067     MUL.SU W0, #7, W0
+0034A4  EA0000     NEG W0, W0
+793:                   }
+794:               }
+0034A6  060000     RETURN
+795:               signed int getAverage(signed int * array,unsigned char length)
+796:               {
+003886  780180     MOV W0, W3
+003888  784101     MOV.B W1, W2
+797:                   signed long value=0;
+00388A  B80060     MUL.UU W0, #0, W0
+798:                   unsigned char x;
+799:                   for( x = 0; x < length; x++)
+00388C  E00402     CP0.B W2
+00388E  320009     BRA Z, .L85
+003890  EB0200     CLR W4
+00389E  514F84     SUB.B W2, W4, [W15]
+0038A0  3EFFF8     BRA GTU, .L86
+800:                   {
+801:                       value = value+ *array;
+003892  D00284     SL W4, W5
+003894  7982E5     MOV [W5+W3], W5
+003896  DEAB4F     ASR W5, #15, W6
+003898  428000     ADD W5, W0, W0
+00389A  4B0081     ADDC W6, W1, W1
+00389C  E80204     INC W4, W4
+802:                       array++;
+803:                   }
+804:                   value = value/length;
+0038A2  FB8102     ZE W2, W2
+0038A4  EB0180     CLR W3
+0038A6  07E4D5     RCALL ___divsi3
+805:                   return (signed int)value;
+806:               }
+0038A8  060000     RETURN
+807:               
+808:               signed int Scale(signed int sample,unsigned int scalevalue)
+809:               {   //scale value is 0 - 1023;
+0038AA  780101     MOV W1, W2
+810:                   signed long result;
+811:                   result = sample;
+0038AC  B90261     MUL.SU W0, #1, W4
+812:                   result = result * scalevalue;   //multiply by 0 - 1023
+0038AE  EB0180     CLR W3
+0038B0  B9A802     MUL.SS W5, W2, W0
+0038B2  B81104     MUL.UU W2, W4, W2
+0038B4  400183     ADD W0, W3, W3
+813:               
+814:                   result = result/1024;            //shift right 10 = divide by 1024
+0038B6  510FE0     SUB W2, #0x0, [W15]
+0038B8  598FE0     SUBB W3, #0x0, [W15]
+0038BA  3D0002     BRA GE, .L90
+0038BC  B03FF2     ADD #0x3FF, W2
+0038BE  B08003     ADDC #0x0, W3
+0038C0  DD1A46     SL W3, #6, W4
+0038C2  DE104A     LSR W2, #10, W0
+0038C4  720000     IOR W4, W0, W0
+815:               
+816:                   return (signed int)result;
+817:                   
+818:               }
+0038C6  060000     RETURN

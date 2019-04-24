@@ -1,0 +1,561 @@
+%CMF
+# %PSECTS Section
+# For each object file, details of its psects are enumerated here.
+# The begining of the section is indicated by %PSECTS.  The first
+# line indicates the name of the first object file, e.g.
+#    $foo.obj
+# Each line that follows describes a psect in that object file, until
+# the next object file.  The lines that describe a psect have the
+# format:
+#    <psect name> <class name> <space> <link address> <load addresses> <length> <delta>
+# All addresses and the length are given in unqualified hexadecimal
+# in delta units.  Any other numeric values are decimal.
+%PSECTS
+$/tmp/xcVhX3SLm.obj
+idloc IDLOC 0 200000 200000 8 1
+init CODE 0 E E 4 1
+reset_vec CODE 0 0 0 6 1
+config CONFIG 0 300000 300000 E 1
+$dist/default/debug/Neuztech-1.X.debug.obj
+cinit CODE 0 394 394 10 1
+intcode_body CODE 0 12 12 128 1
+text0 CODE 0 2DA 2DA 3E 1
+text1 CODE 0 318 318 38 1
+text2 CODE 0 28A 28A 50 1
+text3 CODE 0 382 382 12 1
+text5 CODE 0 1BC 1BC 78 1
+text6 CODE 0 234 234 56 1
+text7 CODE 0 13A 13A 82 1
+text8 CODE 0 350 350 32 1
+cstackCOMRAM COMRAM 1 1 1 2F 1
+temp COMRAM 1 31 31 1 1
+intcode CODE 0 8 8 6 1
+bssCOMRAM COMRAM 1 30 30 1 1
+# %UNUSED Section
+# This section enumerates the unused ranges of each CLASS. Each entry
+# is described on a single line as follows:
+#    <class name> <range> <delta>
+# Addresses given in the range are in hexadecimal and units of delta.
+%UNUSED
+RAM 80-5EE 1
+SFR F80-F9B 1
+SFR F9D-FD3 1
+SFR FD5-FDA 1
+SFR FE0-FE2 1
+SFR FE8-FEA 1
+SFR FF0-FFB 1
+BANK0 80-FF 1
+BANK1 100-1FF 1
+BANK2 200-2FF 1
+BANK3 300-3FF 1
+BANK4 400-4FF 1
+BANK5 500-5EE 1
+CONST 6-7 1
+CONST 3A4-7CFF 1
+STACK 80-5EE 1
+SMALLCONST 600-7CFF 1
+CODE 6-7 1
+CODE 3A4-7CFF 1
+BIGRAM 32-5EE 1
+COMRAM 32-7F 1
+EEDATA F00000-F000FF 1
+MEDIUMCONST 600-7CFF 1
+# %LINETAB Section
+# This section enumerates the file/line to address mappings.
+# The beginning of the section is indicated by %LINETAB.
+# The first line indicates the name of the first object file, e.g.
+#   $foo.obj
+# Each line that follows describes a single mapping until the next
+# object file.  Mappings have the following format:
+#    <address> <psect name> <class name> ><line number>:<file name>
+# The address is absolute and given given in unqualified hex 
+# in delta units of the psect. All mappings within an object file
+# are in ascending order of addresses.
+# All other numeric values are in decimal.
+%LINETAB
+$dist/default/debug/Neuztech-1.X.debug.obj
+8 intcode CODE >81:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+8 intcode CODE >240:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+350 text8 CODE >179:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+350 text8 CODE >182:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+354 text8 CODE >184:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+358 text8 CODE >185:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+35C text8 CODE >187:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+35E text8 CODE >189:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+362 text8 CODE >190:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+368 text8 CODE >191:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+36E text8 CODE >192:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+378 text8 CODE >193:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+13A text7 CODE >8:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+13A text7 CODE >14:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+14A text7 CODE >15:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+156 text7 CODE >16:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+15A text7 CODE >17:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+15C text7 CODE >18:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+166 text7 CODE >19:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+168 text7 CODE >17:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+168 text7 CODE >20:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+16C text7 CODE >22:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+176 text7 CODE >23:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+18A text7 CODE >24:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+19A text7 CODE >25:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+19C text7 CODE >26:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+19C text7 CODE >27:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+1A6 text7 CODE >28:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+1AA text7 CODE >30:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+1BA text7 CODE >31:/Applications/microchip/xc8/v1.45/sources/common/lldiv.c
+234 text6 CODE >15:/Applications/microchip/xc8/v1.45/sources/common/Umul32.c
+234 text6 CODE >119:/Applications/microchip/xc8/v1.45/sources/common/Umul32.c
+244 text6 CODE >120:/Applications/microchip/xc8/v1.45/sources/common/Umul32.c
+244 text6 CODE >121:/Applications/microchip/xc8/v1.45/sources/common/Umul32.c
+248 text6 CODE >122:/Applications/microchip/xc8/v1.45/sources/common/Umul32.c
+258 text6 CODE >123:/Applications/microchip/xc8/v1.45/sources/common/Umul32.c
+262 text6 CODE >124:/Applications/microchip/xc8/v1.45/sources/common/Umul32.c
+26C text6 CODE >125:/Applications/microchip/xc8/v1.45/sources/common/Umul32.c
+278 text6 CODE >128:/Applications/microchip/xc8/v1.45/sources/common/Umul32.c
+288 text6 CODE >129:/Applications/microchip/xc8/v1.45/sources/common/Umul32.c
+1BC text5 CODE >120:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1BC text5 CODE >124:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1BE text5 CODE >127:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1BE text5 CODE >128:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1C0 text5 CODE >129:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1C2 text5 CODE >130:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1C4 text5 CODE >131:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1C6 text5 CODE >133:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1C6 text5 CODE >134:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1C8 text5 CODE >135:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1CA text5 CODE >136:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1CC text5 CODE >137:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1CE text5 CODE >139:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1CE text5 CODE >140:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1D0 text5 CODE >141:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1D2 text5 CODE >142:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1D4 text5 CODE >143:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1D6 text5 CODE >145:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1D6 text5 CODE >146:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1D8 text5 CODE >147:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1DA text5 CODE >148:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1DC text5 CODE >149:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1DE text5 CODE >151:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1DE text5 CODE >152:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1E0 text5 CODE >153:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1E2 text5 CODE >154:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1E4 text5 CODE >155:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1E6 text5 CODE >157:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1E6 text5 CODE >158:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1E8 text5 CODE >159:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1EA text5 CODE >160:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1EC text5 CODE >161:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1EE text5 CODE >163:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1EE text5 CODE >164:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1F0 text5 CODE >165:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1F2 text5 CODE >166:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1F4 text5 CODE >167:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1F6 text5 CODE >169:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1F6 text5 CODE >170:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1F8 text5 CODE >171:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1FA text5 CODE >172:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+1FE text5 CODE >174:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+200 text5 CODE >124:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+12 intcode_body CODE >81:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+5C intcode_body CODE >86:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+60 intcode_body CODE >88:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+62 intcode_body CODE >89:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+66 intcode_body CODE >90:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+76 intcode_body CODE >91:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+AA intcode_body CODE >92:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+DE intcode_body CODE >93:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+E2 intcode_body CODE >94:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+E6 intcode_body CODE >95:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+EA intcode_body CODE >96:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+EC intcode_body CODE >97:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+EE intcode_body CODE >98:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+EE intcode_body CODE >99:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+382 text3 CODE >233:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+384 text3 CODE >236:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+388 text3 CODE >237:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+38A text3 CODE >238:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+38E text3 CODE >239:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+28A text2 CODE >242:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+28A text2 CODE >247:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+28E text2 CODE >248:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+292 text2 CODE >249:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+298 text2 CODE >250:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+29A text2 CODE >251:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+29C text2 CODE >252:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+29E text2 CODE >253:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2A4 text2 CODE >254:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2AA text2 CODE >255:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2AC text2 CODE >256:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2AE text2 CODE >259:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2B2 text2 CODE >260:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2B6 text2 CODE >261:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2BC text2 CODE >262:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2BE text2 CODE >263:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2C0 text2 CODE >264:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2C6 text2 CODE >265:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2CC text2 CODE >266:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2CE text2 CODE >267:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2D0 text2 CODE >268:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2D2 text2 CODE >269:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2D4 text2 CODE >270:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2D6 text2 CODE >271:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2D8 text2 CODE >275:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+318 text1 CODE >196:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+318 text1 CODE >198:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+31C text1 CODE >200:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+31E text1 CODE >201:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+320 text1 CODE >202:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+322 text1 CODE >203:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+324 text1 CODE >204:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+326 text1 CODE >205:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+328 text1 CODE >206:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+32A text1 CODE >207:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+32C text1 CODE >209:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+330 text1 CODE >210:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+332 text1 CODE >211:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+334 text1 CODE >215:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+336 text1 CODE >216:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+338 text1 CODE >217:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+33A text1 CODE >218:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+33C text1 CODE >219:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+33E text1 CODE >220:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+340 text1 CODE >224:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+342 text1 CODE >225:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+344 text1 CODE >226:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+348 text1 CODE >227:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+34C text1 CODE >229:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+34E text1 CODE >231:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2DA text0 CODE >101:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2DA text0 CODE >103:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2DE text0 CODE >104:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2E6 text0 CODE >105:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2E6 text0 CODE >107:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2FA text0 CODE >108:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+2FE text0 CODE >109:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+30E text0 CODE >110:/Volumes/GoogleDrive/My Drive/Audio Projects/Neuztech-1/Neuztech-1.X/main.c
+394 cinit CODE >432:/tmp/xcYviTcwj
+394 cinit CODE >434:/tmp/xcYviTcwj
+394 cinit CODE >437:/tmp/xcYviTcwj
+394 cinit CODE >448:/tmp/xcYviTcwj
+396 cinit CODE >454:/tmp/xcYviTcwj
+396 cinit CODE >456:/tmp/xcYviTcwj
+398 cinit CODE >457:/tmp/xcYviTcwj
+39A cinit CODE >459:/tmp/xcYviTcwj
+39C cinit CODE >460:/tmp/xcYviTcwj
+39E cinit CODE >461:/tmp/xcYviTcwj
+3A0 cinit CODE >462:/tmp/xcYviTcwj
+# %SYMTAB Section
+# An enumeration of all symbols in the program.
+# The beginning of the section is indicated by %SYMTAB.
+# Each line describes a single symbol as follows:
+#    <label> <value> [-]<load-adj> <class> <space> <psect> <file-name>
+# The value and load-adj are both in unqualified hexadecimal.
+# All other numeric values are in decimal.  The load-adj is the
+# quantity one needs to add to the symbol value in order to obtain the load
+# address of the symbol.  This value may be signed. If the symbol
+# was defined in a psect then <psect> will be "-". File-name
+# is the name of the object file in which the symbol was defined.
+%SYMTAB
+__Lmediumconst 0 0 MEDIUMCONST 0 mediumconst dist/default/debug/Neuztech-1.X.debug.obj
+__Hspace_0 30000E 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Hspace_1 32 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Hspace_2 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_IESO$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Hibigdata 0 0 CODE 0 ibigdata dist/default/debug/Neuztech-1.X.debug.obj
+__mediumconst 0 0 MEDIUMCONST 0 mediumconst /tmp/xcVhX3SLm.obj
+__Heeprom_data 0 0 EEDATA 0 eeprom_data dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_MCLRE$ON 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Lsmallconst 0 0 SMALLCONST 0 smallconst dist/default/debug/Neuztech-1.X.debug.obj
+___sp 0 0 STACK 2 stack /tmp/xcVhX3SLm.obj
+_main 2DA 0 CODE 0 text0 dist/default/debug/Neuztech-1.X.debug.obj
+btemp 31 0 COMRAM 1 temp dist/default/debug/Neuztech-1.X.debug.obj
+start E 0 CODE 0 init /tmp/xcVhX3SLm.obj
+__size_of_main 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__size_of___lldiv 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__HbssCOMRAM 0 0 ABS 0 bssCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+?___lmul 1 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+__Hpowerup E 0 CODE 0 powerup dist/default/debug/Neuztech-1.X.debug.obj
+__size_of_PutSPIByte 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__accesstop 80 0 ABS 0 - /tmp/xcVhX3SLm.obj
+intlevel0 0 0 CODE 0 text /tmp/xcVhX3SLm.obj
+intlevel1 0 0 CODE 0 text /tmp/xcVhX3SLm.obj
+intlevel2 0 0 CODE 0 text /tmp/xcVhX3SLm.obj
+intlevel3 0 0 CODE 0 text /tmp/xcVhX3SLm.obj
+__LbssCOMRAM 0 0 ABS 0 bssCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+__LnvFARRAM 0 0 FARRAM 0 nvFARRAM dist/default/debug/Neuztech-1.X.debug.obj
+wtemp6 32 0 COMRAM 1 temp dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_EBTR0$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_EBTR1$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_EBTR2$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_EBTR3$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_EBTRB$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Hifardata 0 0 CODE 0 ifardata dist/default/debug/Neuztech-1.X.debug.obj
+__Hclrtext 0 0 ABS 0 clrtext dist/default/debug/Neuztech-1.X.debug.obj
+_ADCON0 FC2 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+_ADCON1 FC1 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+_ADCON2 FC0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+_ADRESH FC4 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+_ADRESL FC3 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+___inthi_sp 0 0 STACK 2 stack /tmp/xcVhX3SLm.obj
+___intlo_sp 0 0 STACK 2 stack /tmp/xcVhX3SLm.obj
+__Hintcode_body 0 0 ABS 0 intcode_body dist/default/debug/Neuztech-1.X.debug.obj
+__end_of___lmul 28A 0 CODE 0 text6 dist/default/debug/Neuztech-1.X.debug.obj
+__Lintsave_regs 0 0 BIGRAM 1 intsave_regs dist/default/debug/Neuztech-1.X.debug.obj
+main@fun 2E 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+__Hmediumconst 0 0 MEDIUMCONST 0 mediumconst dist/default/debug/Neuztech-1.X.debug.obj
+__Hintcodelo E 0 CODE 0 intcodelo dist/default/debug/Neuztech-1.X.debug.obj
+__size_of_chipconfig 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__end_of___lldiv 1BC 0 CODE 0 text7 dist/default/debug/Neuztech-1.X.debug.obj
+__end_of_ReadSwirl 382 0 CODE 0 text8 dist/default/debug/Neuztech-1.X.debug.obj
+__size_of_ReadSwirl 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__size_of_swirl 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+___lldiv@counter D 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+__Lintcodelo E 0 CODE 0 intcodelo dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_FCMEN$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+start_initialization 394 0 CODE 0 cinit dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_PBADEN$ON 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+_OSCCON FD3 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__HnvFARRAM 0 0 FARRAM 0 nvFARRAM dist/default/debug/Neuztech-1.X.debug.obj
+_TRISAbits F92 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+_TRISBbits F93 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+_TRISCbits F94 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+_ReadSwirl 350 0 CODE 0 text8 dist/default/debug/Neuztech-1.X.debug.obj
+___lldiv@dividend 1 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+___rparam_used 1 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_WDTPS$32768 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+swirl@step 30 0 COMRAM 1 bssCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+_SSPBUF FC9 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Hbank0 0 0 ABS 0 bank0 dist/default/debug/Neuztech-1.X.debug.obj
+__Hbank1 0 0 ABS 0 bank1 dist/default/debug/Neuztech-1.X.debug.obj
+__Hbank2 0 0 ABS 0 bank2 dist/default/debug/Neuztech-1.X.debug.obj
+__Hbank3 0 0 ABS 0 bank3 dist/default/debug/Neuztech-1.X.debug.obj
+__Hbank4 0 0 ABS 0 bank4 dist/default/debug/Neuztech-1.X.debug.obj
+__Hbank5 0 0 ABS 0 bank5 dist/default/debug/Neuztech-1.X.debug.obj
+__Hcinit 0 0 ABS 0 cinit dist/default/debug/Neuztech-1.X.debug.obj
+__Hconst 0 0 CONST 0 const dist/default/debug/Neuztech-1.X.debug.obj
+__Hidata 0 0 CODE 0 idata dist/default/debug/Neuztech-1.X.debug.obj
+__Hidloc 200008 0 IDLOC 0 idloc dist/default/debug/Neuztech-1.X.debug.obj
+__Hnvbit 0 0 COMRAM 1 nvbit dist/default/debug/Neuztech-1.X.debug.obj
+__Hparam 0 0 COMRAM 1 rparam dist/default/debug/Neuztech-1.X.debug.obj
+__Hrdata 0 0 COMRAM 1 rdata dist/default/debug/Neuztech-1.X.debug.obj
+__Hstack 0 0 STACK 2 stack dist/default/debug/Neuztech-1.X.debug.obj
+__Htext0 0 0 ABS 0 text0 dist/default/debug/Neuztech-1.X.debug.obj
+__Htext1 0 0 ABS 0 text1 dist/default/debug/Neuztech-1.X.debug.obj
+__Htext2 0 0 ABS 0 text2 dist/default/debug/Neuztech-1.X.debug.obj
+__Htext3 0 0 ABS 0 text3 dist/default/debug/Neuztech-1.X.debug.obj
+__Htext5 0 0 ABS 0 text5 dist/default/debug/Neuztech-1.X.debug.obj
+__Htext6 0 0 ABS 0 text6 dist/default/debug/Neuztech-1.X.debug.obj
+__Htext7 0 0 ABS 0 text7 dist/default/debug/Neuztech-1.X.debug.obj
+__Htext8 0 0 ABS 0 text8 dist/default/debug/Neuztech-1.X.debug.obj
+__Hbigbss 0 0 BIGRAM 1 bigbss dist/default/debug/Neuztech-1.X.debug.obj
+__Hbigram 0 0 ABS 0 bigram dist/default/debug/Neuztech-1.X.debug.obj
+__smallconst 0 0 SMALLCONST 0 smallconst /tmp/xcVhX3SLm.obj
+__Hcomram 0 0 ABS 0 comram dist/default/debug/Neuztech-1.X.debug.obj
+__Hconfig 30000E 0 CONFIG 0 config dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_LPT1OSC$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Lbank0 0 0 ABS 0 bank0 dist/default/debug/Neuztech-1.X.debug.obj
+__Lbank1 0 0 ABS 0 bank1 dist/default/debug/Neuztech-1.X.debug.obj
+__Lbank2 0 0 ABS 0 bank2 dist/default/debug/Neuztech-1.X.debug.obj
+__Lbank3 0 0 ABS 0 bank3 dist/default/debug/Neuztech-1.X.debug.obj
+__Lbank4 0 0 ABS 0 bank4 dist/default/debug/Neuztech-1.X.debug.obj
+__Lbank5 0 0 ABS 0 bank5 dist/default/debug/Neuztech-1.X.debug.obj
+__Lcinit 0 0 ABS 0 cinit dist/default/debug/Neuztech-1.X.debug.obj
+__Lconst 0 0 CONST 0 const dist/default/debug/Neuztech-1.X.debug.obj
+__Lidata 0 0 CODE 0 idata dist/default/debug/Neuztech-1.X.debug.obj
+__Lidloc 200000 0 IDLOC 0 idloc dist/default/debug/Neuztech-1.X.debug.obj
+__Lnvbit 0 0 COMRAM 1 nvbit dist/default/debug/Neuztech-1.X.debug.obj
+__Lparam 0 0 COMRAM 1 rparam dist/default/debug/Neuztech-1.X.debug.obj
+__Lrdata 0 0 COMRAM 1 rdata dist/default/debug/Neuztech-1.X.debug.obj
+__Lstack 0 0 STACK 2 stack dist/default/debug/Neuztech-1.X.debug.obj
+__Ltext0 0 0 ABS 0 text0 dist/default/debug/Neuztech-1.X.debug.obj
+__Ltext1 0 0 ABS 0 text1 dist/default/debug/Neuztech-1.X.debug.obj
+__Ltext2 0 0 ABS 0 text2 dist/default/debug/Neuztech-1.X.debug.obj
+__Ltext3 0 0 ABS 0 text3 dist/default/debug/Neuztech-1.X.debug.obj
+__Ltext5 0 0 ABS 0 text5 dist/default/debug/Neuztech-1.X.debug.obj
+__Ltext6 0 0 ABS 0 text6 dist/default/debug/Neuztech-1.X.debug.obj
+__Ltext7 0 0 ABS 0 text7 dist/default/debug/Neuztech-1.X.debug.obj
+__Ltext8 0 0 ABS 0 text8 dist/default/debug/Neuztech-1.X.debug.obj
+__Hfarbss 0 0 FARRAM 0 farbss dist/default/debug/Neuztech-1.X.debug.obj
+__Lintcode_body 0 0 ABS 0 intcode_body dist/default/debug/Neuztech-1.X.debug.obj
+_INTCONbits FF2 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_OSC$INTIO67 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Habs1 0 0 ABS 0 abs1 dist/default/debug/Neuztech-1.X.debug.obj
+__Hdata 0 0 ABS 0 data dist/default/debug/Neuztech-1.X.debug.obj
+__Hinit 12 0 CODE 0 init dist/default/debug/Neuztech-1.X.debug.obj
+__Hrbit 0 0 COMRAM 1 rbit dist/default/debug/Neuztech-1.X.debug.obj
+__Hrbss 0 0 COMRAM 1 rbss dist/default/debug/Neuztech-1.X.debug.obj
+__Htemp 32 0 COMRAM 1 temp dist/default/debug/Neuztech-1.X.debug.obj
+__Htext 0 0 ABS 0 text dist/default/debug/Neuztech-1.X.debug.obj
+__Labs1 0 0 ABS 0 abs1 dist/default/debug/Neuztech-1.X.debug.obj
+__Ldata 0 0 ABS 0 data dist/default/debug/Neuztech-1.X.debug.obj
+__Linit E 0 CODE 0 init dist/default/debug/Neuztech-1.X.debug.obj
+__Lrbit 0 0 COMRAM 1 rbit dist/default/debug/Neuztech-1.X.debug.obj
+__Lrbss 0 0 COMRAM 1 rbss dist/default/debug/Neuztech-1.X.debug.obj
+__Ltemp 31 0 COMRAM 1 temp dist/default/debug/Neuztech-1.X.debug.obj
+__Ltext 0 0 ABS 0 text dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_XINST$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+WriteDac@data1 27 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+WriteDac@data2 29 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+___lmul 234 0 CODE 0 text6 dist/default/debug/Neuztech-1.X.debug.obj
+int$flags 31 0 COMRAM 1 temp dist/default/debug/Neuztech-1.X.debug.obj
+__HcstackCOMRAM 0 0 ABS 0 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+__Hintret 0 0 ABS 0 intret dist/default/debug/Neuztech-1.X.debug.obj
+__Hirdata 0 0 CODE 0 irdata dist/default/debug/Neuztech-1.X.debug.obj
+_ISR 8 0 CODE 0 intcode dist/default/debug/Neuztech-1.X.debug.obj
+__S0 30000E 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__S1 32 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__S2 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Lbigdata 0 0 BIGRAM 1 bigdata dist/default/debug/Neuztech-1.X.debug.obj
+__Hnvrram 0 0 COMRAM 1 nvrram dist/default/debug/Neuztech-1.X.debug.obj
+__end_of_ISR 13A 0 CODE 0 intcode_body dist/default/debug/Neuztech-1.X.debug.obj
+int_func 12 0 CODE 0 intcode_body dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_CCP2MX$PORTC 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Lintentry 0 0 ABS 0 intentry dist/default/debug/Neuztech-1.X.debug.obj
+___lldiv@divisor 5 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+__Hramtop 600 0 RAM 0 ramtop dist/default/debug/Neuztech-1.X.debug.obj
+__Hrparam 0 0 COMRAM 1 rparam dist/default/debug/Neuztech-1.X.debug.obj
+__activetblptr 2 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+ISR@temp 20 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+__Hstruct 0 0 COMRAM 1 struct dist/default/debug/Neuztech-1.X.debug.obj
+__size_of___lmul 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__size_of_WriteDac 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__pintcode_body 12 0 CODE 0 intcode_body dist/default/debug/Neuztech-1.X.debug.obj
+___lldiv 13A 0 CODE 0 text7 dist/default/debug/Neuztech-1.X.debug.obj
+__Lbigbss 0 0 BIGRAM 1 bigbss dist/default/debug/Neuztech-1.X.debug.obj
+__Lbigram 0 0 ABS 0 bigram dist/default/debug/Neuztech-1.X.debug.obj
+___lmul@multiplier 1 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_BORV$3 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Lcomram 0 0 ABS 0 comram dist/default/debug/Neuztech-1.X.debug.obj
+__Lconfig 300000 0 CONFIG 0 config dist/default/debug/Neuztech-1.X.debug.obj
+_LATBbits F8A 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+_LATCbits F8B 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Lfarbss 0 0 FARRAM 0 farbss dist/default/debug/Neuztech-1.X.debug.obj
+__Lfardata 0 0 FARRAM 0 fardata dist/default/debug/Neuztech-1.X.debug.obj
+ReadSwirl@value 3 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+_PutSPIByte 382 0 CODE 0 text3 dist/default/debug/Neuztech-1.X.debug.obj
+stackhi 5EE 0 ABS 0 - /tmp/xcVhX3SLm.obj
+stacklo 80 0 ABS 0 - /tmp/xcVhX3SLm.obj
+WriteDac@highbyte 2C 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+__Lintcode 8 0 CODE 0 intcode dist/default/debug/Neuztech-1.X.debug.obj
+__Lintret 0 0 ABS 0 intret dist/default/debug/Neuztech-1.X.debug.obj
+__Lirdata 0 0 CODE 0 irdata dist/default/debug/Neuztech-1.X.debug.obj
+_ADCON0bits FC2 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Lspace_0 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Lspace_1 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Lspace_2 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__pbssCOMRAM 30 0 COMRAM 1 bssCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_LVP$ON 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__LcstackCOMRAM 0 0 ABS 0 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+end_of_initialization 396 0 CODE 0 cinit dist/default/debug/Neuztech-1.X.debug.obj
+_WriteDac 28A 0 CODE 0 text2 dist/default/debug/Neuztech-1.X.debug.obj
+__Lnvrram 0 0 COMRAM 1 nvrram dist/default/debug/Neuztech-1.X.debug.obj
+__Hintentry 0 0 ABS 0 intentry dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_STVREN$ON 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+?___lldiv 1 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+__Hreset_vec 6 0 CODE 0 reset_vec dist/default/debug/Neuztech-1.X.debug.obj
+__end_of_WriteDac 2DA 0 CODE 0 text2 dist/default/debug/Neuztech-1.X.debug.obj
+__Lramtop 600 0 RAM 0 ramtop dist/default/debug/Neuztech-1.X.debug.obj
+WriteDac@lowbyte 2B 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+__Lrparam 0 0 COMRAM 1 rparam dist/default/debug/Neuztech-1.X.debug.obj
+__pcinit 394 0 CODE 0 cinit dist/default/debug/Neuztech-1.X.debug.obj
+_SSPCON1bits FC6 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__ptext0 2DA 0 CODE 0 text0 dist/default/debug/Neuztech-1.X.debug.obj
+__ptext1 318 0 CODE 0 text1 dist/default/debug/Neuztech-1.X.debug.obj
+__ptext2 28A 0 CODE 0 text2 dist/default/debug/Neuztech-1.X.debug.obj
+__ptext3 382 0 CODE 0 text3 dist/default/debug/Neuztech-1.X.debug.obj
+__ptext5 1BC 0 CODE 0 text5 dist/default/debug/Neuztech-1.X.debug.obj
+__ptext6 234 0 CODE 0 text6 dist/default/debug/Neuztech-1.X.debug.obj
+__ptext7 13A 0 CODE 0 text7 dist/default/debug/Neuztech-1.X.debug.obj
+__ptext8 350 0 CODE 0 text8 dist/default/debug/Neuztech-1.X.debug.obj
+__Lstruct 0 0 COMRAM 1 struct dist/default/debug/Neuztech-1.X.debug.obj
+__ramtop 600 0 RAM 0 ramtop /tmp/xcVhX3SLm.obj
+__Lpowerup E 0 CODE 0 powerup dist/default/debug/Neuztech-1.X.debug.obj
+__Leeprom_data 0 0 EEDATA 0 eeprom_data dist/default/debug/Neuztech-1.X.debug.obj
+__end_of_PutSPIByte 394 0 CODE 0 text3 dist/default/debug/Neuztech-1.X.debug.obj
+_chipconfig 318 0 CODE 0 text1 dist/default/debug/Neuztech-1.X.debug.obj
+__Lreset_vec 0 0 CODE 0 reset_vec dist/default/debug/Neuztech-1.X.debug.obj
+___param_bank 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_WDT$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Hbigdata 0 0 BIGRAM 1 bigdata dist/default/debug/Neuztech-1.X.debug.obj
+__end_of__initialization 396 0 CODE 0 cinit dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_WRT0$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_WRT1$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_WRT2$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_WRT3$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_WRTB$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Libigdata 0 0 CODE 0 ibigdata dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_WRTC$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_WRTD$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Lclrtext 0 0 ABS 0 clrtext dist/default/debug/Neuztech-1.X.debug.obj
+ISR@swirlval 21 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+?_ReadSwirl 1 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+___lmul@product 9 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+___lmul@multiplicand 5 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_PWRT$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+___lldiv@quotient 9 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+__pcstackCOMRAM 1 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+PutSPIByte@data 26 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+PutSPIByte@temp 25 0 COMRAM 1 cstackCOMRAM dist/default/debug/Neuztech-1.X.debug.obj
+_SSPCON1 FC6 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+_SSPSTAT FC7 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_BOREN$SBORDIS 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__end_of_main 318 0 CODE 0 text0 dist/default/debug/Neuztech-1.X.debug.obj
+__pintcode 8 0 CODE 0 intcode dist/default/debug/Neuztech-1.X.debug.obj
+_T0CON FD5 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+_TMR0H FD7 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+_TMR0L FD6 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__end_of_swirl 234 0 CODE 0 text5 dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_CP0$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_CP1$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__HRAM 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Hbss 0 0 RAM 1 bss dist/default/debug/Neuztech-1.X.debug.obj
+__Hram 0 0 ABS 0 ram dist/default/debug/Neuztech-1.X.debug.obj
+__Hsfr 0 0 ABS 0 sfr dist/default/debug/Neuztech-1.X.debug.obj
+__LRAM 1 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__Lbss 0 0 RAM 1 bss dist/default/debug/Neuztech-1.X.debug.obj
+__Lram 0 0 ABS 0 ram dist/default/debug/Neuztech-1.X.debug.obj
+__Lsfr 0 0 ABS 0 sfr dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_CP2$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_CP3$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_CPB$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__CFG_CPD$OFF 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+_swirl 1BC 0 CODE 0 text5 dist/default/debug/Neuztech-1.X.debug.obj
+_SSPSTATbits FC7 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__size_of_ISR 0 0 ABS 0 - dist/default/debug/Neuztech-1.X.debug.obj
+__end_of_chipconfig 350 0 CODE 0 text1 dist/default/debug/Neuztech-1.X.debug.obj
+__initialization 394 0 CODE 0 cinit dist/default/debug/Neuztech-1.X.debug.obj
+__Hfardata 0 0 FARRAM 0 fardata dist/default/debug/Neuztech-1.X.debug.obj
+__Hsmallconst 0 0 SMALLCONST 0 smallconst dist/default/debug/Neuztech-1.X.debug.obj
+__Lifardata 0 0 CODE 0 ifardata dist/default/debug/Neuztech-1.X.debug.obj
+__Hintsave_regs 0 0 BIGRAM 1 intsave_regs dist/default/debug/Neuztech-1.X.debug.obj
+__Hintcode E 0 CODE 0 intcode dist/default/debug/Neuztech-1.X.debug.obj
+# %SPLITSTAB Section
+# This section enumerates all the psect splits performed by the assembler.
+# The beginning of the section is indicated by %SPLITSTAB.
+# Each line is a record a particular split, where the parent psect is on
+# the left and the child on the right.  Note that a child psect is always
+# split form the top of the parent psect. All splits from a given parent
+# are listed in the order in which they occurred.
+%SPLITSTAB
+# %DABS Section
+# This section contains a table of all usuage of the assember
+# directive DABS in the program. Each line has the following format:
+#   <name> <space> <address> <size>
+# If the DABS was originally labelled then that shall be <name>,
+# otherwise name will be "-".  The <space> number is in decimal.
+# <address> and <size> are in byte units as unqaulified hexadecimal
+%DABS
+# %SEGMENTS Section
+# This sections enumerates the segments of the program.  Each segment
+# is described on a single line as follows:
+#    <name> <space> <link address> <file address> <size> <delta>
+# Addresses and size are in unqualified hexadecimal.  The link address
+# and size are in units of delta. The file address is in units of bytes.
+# All other numeric quantities are in decimal.
+%SEGMENTS
+idloc 0 200000 200000 8 1
+cstackCOMRAM 1 1 1 31 1
+reset_vec 0 0 0 6 1
+intcode 0 8 8 39C 1
+config 0 300000 300000 E 1
