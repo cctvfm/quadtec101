@@ -2,4 +2,5 @@ Firmware is writting in C in MPLAB X IDE v 3.65. Some optimization is used, but 
 
 .hex file can be uploaded through IPE and is ready to go. Make sure to select 'DSPIC30F3013' as the device type.
 
+If you purchased a kit, the processor is pre-programmed and ready to go, no need to do any of this stuff.
 V1.0 Released April 24th, 2019
